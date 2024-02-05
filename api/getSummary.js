@@ -22,7 +22,7 @@ async function getSummary(data, { symbol,  quoteVolume }) {
     let result = { 
         ...summary, 
         symbol, 
-        currentPrice: formatNumber(+res.at(-1)[4], { digits: 2, prefix: '$' }), 
+        currentPrice: formatNumber(+res.at(-1)[4], { digits: 2, prefix: '₮' }), 
         quoteVolume: formatNumber(+quoteVolume / 1000000, { digits: 2, prefix: '$', postfix: ' млн' }),
         chart: `${URL_CHART}/${symbol.slice(0,-4)}_USDT?type=spot`,
         diviation: formatNumber(summary.diviation * 100, { digits: 2, postfix: '%' })

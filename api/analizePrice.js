@@ -17,34 +17,34 @@ function analizePrice({
         
     if (wasCrossedBl) {
         summary.messageCode = 1;
-        summary.msg = 'Цена закрытия предыдущей свечи ниже нижней линии Боллинджера';
+        summary.msg = 'Предыдущая свеча закрылась ниже нижней линии Боллинджера';
         summary.diviation = caclDiviationFromLine('bl');
         return summary;
     }
 
     if (wasCrossedTl) {
         summary.messageCode = 2;
-        summary.msg = 'Цена закрытия предыдущей свечи ниже верхней линии Боллинджера';
+        summary.msg = 'Предыдущая свеча закрылась ниже верхней линии Боллинджера';
         summary.diviation = caclDiviationFromLine('tl');
         return summary;
     }
 
     if (isPriceNearBl) {
         summary.messageCode = 3;
-        summary.msg = 'Текущая цена находится рядом с нижней линией Болиндженра';
+        summary.msg = 'Свеча рядом с нижней линией Боллиндженра';
         summary.diviation = caclDiviationFromLine('bl');
         return summary;
     }
 
     if (isPriceNearTl) {
         summary.messageCode = 4;
-        summary.msg = 'Текущая цена находится рядом с верхней линией Болиндженра';
+        summary.msg = 'Свеча рядом с верхней линией Боллиндженра';
         summary.diviation = caclDiviationFromLine('tl');
         return summary;
     }
 
     summary.code = 5;
-    summary.msg = 'Текущая цена находится радом со средней линией Болиндженра';
+    summary.msg = 'Свеча радом со средней линией Боллиндженра';
     summary.diviation = caclDiviationFromLine('ml');
     return summary;
 

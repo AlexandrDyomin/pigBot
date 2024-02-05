@@ -1,3 +1,4 @@
+require('./pigBot.js');
 const http = require('http');
 let routes = require('./routes.js');
 const HOST = process.env.HOST

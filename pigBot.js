@@ -1,4 +1,5 @@
 const fs = require('fs');
+const commands = require('./pigBotCommands.js');
 const TelegramBot = require('node-telegram-bot-api');
 
 const bot = new TelegramBot(process.env.API_KEY_BOT, {
@@ -11,31 +12,28 @@ const bot = new TelegramBot(process.env.API_KEY_BOT, {
 let pathToContacts = './contacts.json';
 let contacts = JSON.parse(fs.readFileSync(pathToContacts));
 
-bot.on('text', msg => {
-    let commands = {
-        "/start": () => {
-            let { id } = msg.from;
-            bot.sendMessage(id, 'Вы запустили бота!');
-            if (!contacts.includes(id)) {
-                contacts.push(id);
-                fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
-            }
+bot.on('text', async (msg) => {
+    let { id } = msg.from;
 
-        }
-    }
     try {
-        commands[msg.text]?.();
-        console.log(msg)
+        let messages = await commands[msg.text]?.({
+            interval: msg.text.replace('/', ''), 
+            limit: 100,
+            filter: [1, 2, 3, 4]
+        });
+        messages?.forEach((msg) => bot.sendMessage(id, msg, { 
+            parse_mode: 'HTML', 
+            disable_web_page_preview: true 
+        }))
     } catch(e) {
         console.log(e)
     }
 });
 
-bot.on("polling_error", err => console.log(err.data.error.message));
+bot.on('polling_error', err => console.log(err.data.error.message));
 
+contacts.forEach(greet);
 
-contacts.forEach(sendMsg);
-
-function sendMsg(id) {
-    bot.sendMessage(id, 'hello');
+function greet(id) {
+    bot.sendMessage(id, 'Hello');
 }
