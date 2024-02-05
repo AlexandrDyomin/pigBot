@@ -13,11 +13,17 @@ async function getInfoAboutCryptocurrencyPairs({ url, quotedCoin, order,  limit,
 
 async function getMarketInfo(url) {
     try {
-        let response = await fetch(url);
+        let response = await fetch(url, { signal: AbortSignal.timeout(2000) });
         if (!response.ok) return [];
         return await response.json();
-    } catch(e) {
-        console.log(e)
+    } catch(error) {
+        if (error.name === 'TimeoutError') {
+            console.error('Запрос на получение данных отменен. Ожидание ответа сервера более 2000 мс');
+        } else {
+            console.error('Не удалось получить ответ:', error);
+        }
+
+        return getMarketInfo(url);
     }
 }   
 

@@ -10,15 +10,12 @@ let commands = {
         }
 
     },
-    '/1d': prepareMessages,
-    '/1w': prepareMessages,
-    '/1M': prepareMessages,
-    '/setLimit': ()=>{},
-    '/setFilter': ()=>{},
+    '/analize_dc': prepareMessages.bind(null, '1d'),
+    '/analize_wc': prepareMessages.bind(null, '1w'),
     '/help': ()=>{},
 }
 
-async function prepareMessages({ interval, limit = 100, maxMessageLength = 4096, filter }) {
+async function prepareMessages(interval, { limit = 100, maxMessageLength = 4096, filter }) {
     let info = await callBinance({
         limit,
         interval

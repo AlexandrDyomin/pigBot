@@ -17,20 +17,39 @@ bot.on('text', async (msg) => {
 
     try {
         let messages = await commands[msg.text]?.({
-            interval: msg.text.replace('/', ''), 
             limit: 100,
-            filter: [1, 2, 3, 4]
+            filter: [3]
         });
         messages?.forEach((msg) => bot.sendMessage(id, msg, { 
             parse_mode: 'HTML', 
             disable_web_page_preview: true 
         }))
-    } catch(e) {
-        console.log(e)
+    } catch(error) {
+        console.error(error)
     }
 });
 
 bot.on('polling_error', err => console.log(err.data.error.message));
+
+let menu = [
+    {
+        command: 'start',
+        description: 'Запуск бота'
+    },
+    {
+        command: 'analize_dc',
+        description: 'Узнать положение свечи относительно индикатора BOLL на графике с интервалом 1d'
+    },
+    {
+        command: 'analize_wc',
+        description: 'Узнать положение свечи относительно индикатора BOLL на графике с интервалом 1w'
+    },
+    {
+        command: 'help',
+        description: 'Узнать положение свечи относительно индикатора BOLL на графике с интервалом 1d'
+    }
+]
+bot.setMyCommands(menu);
 
 contacts.forEach(greet);
 

@@ -49,7 +49,8 @@ function analizePrice({
     return summary;
 
     function caclDiviationFromLine(lineName) {
-        return ((currentPrice - currentBOLL[lineName]) / currentBOLL[lineName]).toFixed(4);
+        // return ((currentPrice - currentBOLL[lineName]) / currentBOLL[lineName]).toFixed(4);
+        return (1 - (currentBOLL[lineName] / currentPrice)).toFixed(4);
     }
 }   
 

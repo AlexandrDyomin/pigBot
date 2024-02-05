@@ -27,7 +27,7 @@ async function getSummary(data, { symbol,  quoteVolume }) {
         chart: `${URL_CHART}/${symbol.slice(0,-4)}_USDT?type=spot`,
         diviation: formatNumber(summary.diviation * 100, { digits: 2, postfix: '%' })
     };
-    
+
     return result;
 
     function formatNumber(value, { digits, prefix = '', postfix=''}) {
