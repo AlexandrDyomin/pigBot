@@ -17,7 +17,7 @@ html(lang="ru")
         div.page
             table#boll
                 form
-                    caption Расположение цен относительно линий Боллинджера BOLL(21,2) на графике с интервалом 
+                    caption Положение свечей относительно линий Боллинджера BOLL(21,2) на графике с интервалом 
                         select.intervals(name="interval")
                             - 
                                 let dailyInterval = '1d', weeklyInterval = '1w', monthlyInterval = '1M';
@@ -28,7 +28,7 @@ html(lang="ru")
                 thead
                     tr
                         th Тикер
-                        th Расположение цены
+                        th Положение свечи
                         th.nowrap Цена(USDT) 
                             button.sortButton(data-param="price")
                                 svg(width="16px" height="16px" viewBox="0 0 401.998 401.998")

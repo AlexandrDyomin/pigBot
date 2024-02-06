@@ -44,12 +44,11 @@ function analizePrice({
     }
 
     summary.code = 5;
-    summary.msg = 'Свеча радом со средней линией Боллиндженра';
+    summary.msg = 'Свеча рядом со средней линией Боллиндженра';
     summary.diviation = caclDiviationFromLine('ml');
     return summary;
 
     function caclDiviationFromLine(lineName) {
-        // return ((currentPrice - currentBOLL[lineName]) / currentBOLL[lineName]).toFixed(4);
         return (1 - (currentBOLL[lineName] / currentPrice)).toFixed(4);
     }
 }   
