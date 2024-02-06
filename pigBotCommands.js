@@ -1,21 +1,22 @@
 const callBinance = require('./api/callBinance.js');
 
 let commands = {
-    '/start': () => {
-        bot.sendMessage(id, '<b>Вы запустили бота!</b><b>Yooo</b>', { parse_mode: 'HTML' });
+    '/start': (contacts) => {
         
         if (!contacts.includes(id)) {
             contacts.push(id);
             fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
         }
 
+        return ['Hello'];
     },
-    '/analize_dc': prepareMessages.bind(null, '1d'),
-    '/analize_wc': prepareMessages.bind(null, '1w'),
+    '/analize_hc': analizeChart.bind(null, '1h'),
+    '/analize_dc': analizeChart.bind(null, '1d'),
+    '/analize_wc': analizeChart.bind(null, '1w'),
     '/help': ()=>{},
 }
 
-async function prepareMessages(interval, { limit = 100, maxMessageLength = 4096, filter }) {
+async function analizeChart(interval, { limit = 100, maxMessageLength = 4096, filter = [1, 2, 3, 4, 5] }) {
     let info = await callBinance({
         limit,
         interval
@@ -23,7 +24,7 @@ async function prepareMessages(interval, { limit = 100, maxMessageLength = 4096,
     let msg = `<b>Анализ свечного графика(${interval})</b>\n\n`;
     
     info.forEach((item) => {
-        if (filter && !filter.includes(item.messageCode)) return;
+        if (!filter.includes(item.messageCode)) return;
         msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
     });
 
