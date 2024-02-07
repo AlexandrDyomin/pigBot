@@ -28,19 +28,20 @@ async function getInfoAboutCryptocurrencyPairs({
     }
 }
 
-async function getMarketInfo(url) {
+async function getMarketInfo(url, isSecondAttempt = false) {
     try {
-        let response = await fetch(url, { signal: AbortSignal.timeout(2000) });
+        let response = await fetch(url, { signal: AbortSignal.timeout(500) });
         if (!response.ok) return [];
         return await response.json();
     } catch(error) {
+        if (isSecondAttempt) throw Error('Две попытки получить данные закончились неудачей');
         if (error.name === 'TimeoutError') {
             console.error('Запрос на получение данных отменен. Ожидание ответа сервера более 2000 мс');
         } else {
             console.error('Не удалось получить ответ:', error);
         }
 
-        return getMarketInfo(url);
+        return getMarketInfo(url, true);
     }
 }   
 
