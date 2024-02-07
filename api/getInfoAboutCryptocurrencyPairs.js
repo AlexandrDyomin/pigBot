@@ -1,14 +1,31 @@
-async function getInfoAboutCryptocurrencyPairs({ url, quotedCoin, order,  limit, orderFunc='desc'}) {
-    let orderDesc = (a, b) => b[order] - a[order];
-    let orderAsc = (a, b) => a[order] - b[order];
-    let orderFunctions = {
-        asc: orderAsc,
-        desc: orderDesc
-    };
-    let data = await getMarketInfo(url);
-    let filteredPairs = filterByQuotedCryptocurrency(data, quotedCoin);
-    order && filteredPairs.sort(orderFunctions[orderFunc]);
-    return filteredPairs.slice(0, limit);
+async function getInfoAboutCryptocurrencyPairs({ 
+    url, 
+    quotedCoin, 
+    order,  
+    limit, 
+    orderFunc='desc'
+}) {
+    try {
+        let orderDesc = (a, b) => b[order] - a[order];
+        let orderAsc = (a, b) => a[order] - b[order];
+        let orderFunctions = {
+            asc: orderAsc,
+            desc: orderDesc
+        };
+        let data = await getMarketInfo(url);
+        let filteredPairs = filterByQuotedCryptocurrency(data, quotedCoin);
+        order && filteredPairs.sort(orderFunctions[orderFunc]);
+        return filteredPairs.slice(0, limit);
+    } catch(error) {
+        console.error(error);
+        return getInfoAboutCryptocurrencyPairs({ 
+            url, 
+            quotedCoin, 
+            order,  
+            limit, 
+            orderFunc
+        });
+    }
 }
 
 async function getMarketInfo(url) {

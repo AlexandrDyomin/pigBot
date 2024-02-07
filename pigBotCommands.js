@@ -1,10 +1,16 @@
 const callBinance = require('./api/callBinance.js');
 
 let commands = {
-    '/start': start,
+    '/start': () => {
+        if (!contacts.includes(id)) {
+            contacts.push(id);
+            fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+        }
+    },
     '/analize_hc': analizeChart.bind(null, '1h'),
     '/analize_dc': analizeChart.bind(null, '1d'),
     '/analize_wc': analizeChart.bind(null, '1w'),
+    '/subscribe': subscribe,
     '/help': () => {
         return ([
             '<b>Бот информирует о положении свечей криптовалют, торгуемых за USDT и ' +
@@ -25,47 +31,62 @@ let commands = {
     }
 }
 
-async function analizeChart(interval, { limit = 100, maxMessageLength = 4096, filter = [1, 2, 3, 4, 5] }) {
-    let info = await callBinance({
-        limit,
-        interval
-    });
-    let msg = '';
+async function analizeChart(interval, { 
+    limit = 100, 
+    maxMessageLength = 4096, 
+    filter = [1, 2, 3, 4, 5] 
+}) {
+    try {
+        let info = await callBinance({
+            limit,
+            interval
+        });
+        let msg = '';
+        
+        info.forEach((item) => {
+            if (!filter.includes(item.messageCode)) return;
+            msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
+        });
     
-    info.forEach((item) => {
-        if (!filter.includes(item.messageCode)) return;
-        msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
-    });
-
-    let messages = [];
-    let header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
-    if (msg.length <= maxMessageLength - header.length) {
-        messages.push(header + msg);
+        let messages = [];
+        let header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
+        if (msg.length <= maxMessageLength - header.length) {
+            msg && messages.push(header + msg);
+            return messages;
+        };
+        
+        let parts = msg.split('\n\n');
+        let quantity = Math.ceil(msg.length / maxMessageLength);
+        let step = Math.ceil(parts.length / quantity);
+        for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop *= 2) {
+            let part = parts.slice(start, stop).join('\n\n');
+            header = `<b>Анализ свечного графика(${interval})\nЧасть ${i + 1}</b>\n\n`;
+            messages.push(header + part);
+        }
+    
         return messages;
-    };
-    
-    let parts = msg.split('\n\n');
-    let quantity = Math.ceil(msg.length / maxMessageLength);
-    let step = Math.ceil(parts.length / quantity);
-    for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop *= 2) {
-        let part = parts.slice(start, stop).join('\n\n');
-        header = `<b>Анализ свечного графика(${interval})\nЧасть ${i + 1}</b>\n\n`;
-        messages.push(header + part);
+    } catch(error) {
+        console.error(error);
+        return [];
     }
-
-    return messages;
 }
 
 async function start(contacts, id) {
-    if (!contacts.includes(id)) {
-        contacts.push(id);
-        fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
-    }
-
     let filter = [1, 2];
     let intervals = ['1d', '1w'];
     let messages = intervals.map(async (interval) => await analizeChart(interval, { filter }));
     return (await Promise.all(messages)).flat();
+}
+
+async function subscribe({ 
+    interval = '1d', 
+    filter = [1,2,3,4,5],
+    periodicity = interval
+}) {
+    return await analizeChart(interval, {
+        filter,
+        periodicity
+    });
 }
 
 module.exports = commands;

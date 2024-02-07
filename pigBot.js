@@ -15,10 +15,6 @@ contacts.forEach(greet);
 
 let menu = [
     {
-        command: 'start',
-        description: 'Запуск бота'
-    },
-    {
         command: 'analize_hc',
         description: 'Узнать положение свечи на графике с интервалом 1h'
     },
@@ -31,6 +27,10 @@ let menu = [
         description: 'Узнать положение свечи с интервалом 1w'
     },
     {
+        command: 'subscribe',
+        description: 'Подписаться на рассылку сообщений'
+    },
+    {
         command: 'help',
         description: 'Вызов справки'
     }
@@ -41,10 +41,12 @@ bot.on('text', async (msg) => {
     let { id } = msg.from;
     let command = msg.text;
     try {
-        let arguments;
+        let arguments = [];
         if (command === '/start') {
             arguments = [contacts, id];
-        } else {
+        } 
+        
+        if (command.startsWith('/analize_')) {
             let regExpKeyL = /-l\s(\d*)/;
             let regExpKeyF = /-f\s(\d(,\s\d)*)/;
             arguments = [{ 
@@ -53,6 +55,18 @@ bot.on('text', async (msg) => {
             }];
         }
 
+        if (command.startsWith('/subscribe')) {
+            let regExpKeyI;
+            let reqExpKeyF;
+            let regExpKeyP;
+
+            arguments = [{
+                interval: command.match(regExpKeyI)?.[1] || '1d',
+                filter: command.match(regExpKeyF)?.[1] || [1, 2, 3, 4, 5],
+                periodicity: command.match(regExpKeyF)?.[1] || '1d'
+            }]
+        }
+        
         command = command.match(/\/\w*/)?.[0];
         let messages = await commands[command]?.(...arguments);
         messages?.forEach((msg) => bot.sendMessage(id, msg, { 

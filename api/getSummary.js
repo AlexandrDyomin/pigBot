@@ -4,7 +4,7 @@ const { URL_CHART } = require('./urls.js');
 
 async function getSummary(data, { symbol,  quoteVolume }) {
     let res = await data;
-    if (res.length < 23) return null;
+    if (!res.length || res.length < 23) return null;
     
     let beforePenultimateBOLL = calcBOLL(res.slice(0, -2));
     let penultimateBOLL = calcBOLL(res.slice(1, -1));
