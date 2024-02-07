@@ -1,21 +1,13 @@
 const callBinance = require('./api/callBinance.js');
 
 let commands = {
-    '/start': (contacts, id) => {
-        
-        if (!contacts.includes(id)) {
-            contacts.push(id);
-            fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
-        }
-
-        return ['Hi'];
-    },
+    '/start': start,
     '/analize_hc': analizeChart.bind(null, '1h'),
     '/analize_dc': analizeChart.bind(null, '1d'),
     '/analize_wc': analizeChart.bind(null, '1w'),
     '/help': () => {
         return ([
-            '<b>Бот анализирует положение свечей криптовалютых пар(<i>X/USDT</i>), ' +
+            '<b>Бот информирует о положении свечей криптовалют, торгуемых за USDT и ' +
             'входящих в топ 100 по объему торгов(<i>в USD</i>) за 24 часа на бирже Binance, ' +
             'на графике относительно линий Боллинджера(<i>BOLL(21,2)</i>).</b>' + 
             '\n\n' +
@@ -62,6 +54,18 @@ async function analizeChart(interval, { limit = 100, maxMessageLength = 4096, fi
     }
 
     return messages;
+}
+
+async function start(contacts, id) {
+    if (!contacts.includes(id)) {
+        contacts.push(id);
+        fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+    }
+
+    let filter = [1, 2];
+    let intervals = ['1d', '1w'];
+    let messages = intervals.map(async (interval) => await analizeChart(interval, { filter }));
+    return (await Promise.all(messages)).flat();
 }
 
 module.exports = commands;

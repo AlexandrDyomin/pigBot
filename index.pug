@@ -20,10 +20,10 @@ html(lang="ru")
                     caption Положение свечей относительно линий Боллинджера BOLL(21,2) на графике с интервалом 
                         select.intervals(name="interval")
                             - 
-                                let dailyInterval = '1d', weeklyInterval = '1w', monthlyInterval = '1M';
+                                let dailyInterval = '1d', weeklyInterval = '1w', hourlyInterval = '1h';
+                            option(value="1h" selected = interval === hourlyInterval ? true : false)= hourlyInterval
                             option(value="1d" selected = interval === dailyInterval ? true : false)= dailyInterval
                             option(value="1w" selected = interval === weeklyInterval ? true : false)= weeklyInterval
-                            option(value="1M" selected = interval === monthlyInterval ? true : false)= monthlyInterval
 
                 thead
                     tr

@@ -7,7 +7,6 @@ async function getBarsInfo({ url, symbol, interval, limit }) {
         if (!response.ok) return [];
         return await response.json();
     } catch(error) {
-        console.error(`Не удалось получить данные по свечам для ${symbol}`, error);
         if (error.name === 'TimeoutError') {
             console.error(`Не удалось получить данные по свечам для ${symbol}. Ожидание ответа сервера более 900 мс`);
         } else {
