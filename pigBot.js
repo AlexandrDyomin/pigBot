@@ -57,24 +57,26 @@ bot.on('text', async (msg) => {
 
         if (command.startsWith('/subscribe')) {
             let regExpKeyI;
-            let reqExpKeyF;
+            let regExpKeyF;
             let regExpKeyP;
 
             arguments = [{
                 interval: command.match(regExpKeyI)?.[1] || '1d',
                 filter: command.match(regExpKeyF)?.[1] || [1, 2, 3, 4, 5],
-                periodicity: command.match(regExpKeyF)?.[1] || '1d'
+                periodicity: command.match(regExpKeyP)?.[1] || '1d'
             }]
         }
         
         command = command.match(/\/\w*/)?.[0];
         let messages = await commands[command]?.(...arguments);
-        messages?.forEach((msg) => bot.sendMessage(id, msg, { 
-            parse_mode: 'HTML', 
-            disable_web_page_preview: true 
-        }))
+        for (let msg of messages) {
+            await bot.sendMessage(id, msg, { 
+                parse_mode: 'HTML', 
+                disable_web_page_preview: true 
+            });
+        }
     } catch(error) {
-        console.error(error)
+        console.error(error);
     }
 });
 

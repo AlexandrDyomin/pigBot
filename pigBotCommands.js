@@ -66,8 +66,7 @@ async function analizeChart(interval, {
     
         return messages;
     } catch(error) {
-        console.error(error);
-        return [];
+        throw error;
     }
 }
 

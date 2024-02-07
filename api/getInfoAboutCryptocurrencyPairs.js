@@ -17,28 +17,25 @@ async function getInfoAboutCryptocurrencyPairs({
         order && filteredPairs.sort(orderFunctions[orderFunc]);
         return filteredPairs.slice(0, limit);
     } catch(error) {
-        console.error(error);
-        return getInfoAboutCryptocurrencyPairs({ 
-            url, 
-            quotedCoin, 
-            order,  
-            limit, 
-            orderFunc
-        });
+        console.error(error.message);
+        throw error;
     }
 }
 
 async function getMarketInfo(url, isSecondAttempt = false) {
     try {
-        let response = await fetch(url, { signal: AbortSignal.timeout(500) });
-        if (!response.ok) return [];
+        let response = await fetch(url, { signal: AbortSignal.timeout(1500) });
+        if (!response.ok) throw Error(`Статусный код ответа: ${response.ok}`);
         return await response.json();
     } catch(error) {
-        if (isSecondAttempt) throw Error('Две попытки получить данные закончились неудачей');
+        if (isSecondAttempt) {
+            throw Error('Вторая попытка получить список криптовалют закончились неудачей');
+        }
+
         if (error.name === 'TimeoutError') {
-            console.error('Запрос на получение данных отменен. Ожидание ответа сервера более 2000 мс');
+            console.error('Запрос на получение списка криптовалют отменен. Ожидание ответа сервера более 1500 мс');
         } else {
-            console.error('Не удалось получить ответ:', error);
+            console.error('Попытка получить список криптовалют закончились неудачей');
         }
 
         return getMarketInfo(url, true);

@@ -13,13 +13,13 @@ async function callBinance({
 }) {
     try {
         let topPairsInfo = await getInfoAboutCryptocurrencyPairs({
-            url: URL_MARKET_INFO, 
-            quotedCoin: 'USDT', 
-            order: 'quoteVolume', 
+            url, 
+            quotedCoin, 
+            order, 
             limit
         });
+
         let store = [];
-    
         for (let pair of topPairsInfo) {
             let barsInfo =  getBarsInfo({ 
                 url: URL_BARS_INFO, 
@@ -27,20 +27,16 @@ async function callBinance({
                 interval, 
                 limit: 23 
             });
-    
             store.push(getSummary(barsInfo, pair));
-        }
-    
-        return (await Promise.all(store)).filter((item) => !!item);
+        } 
+        
+        return (await Promise.allSettled(store)).reduce((acc, item) =>{
+            item.reason && console.log(item)
+            item.value && acc.push(item.value);
+            return acc;
+        }, []);
     } catch(error) {
-        console.error(error);
-        return callBinance({
-            url, 
-            quotedCoin, 
-            order, 
-            limit,
-            interval
-        })
+        throw error;
     }
 }   
 
