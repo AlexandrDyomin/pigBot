@@ -1,4 +1,5 @@
 const callBinance = require('./api/callBinance.js');
+const { URL_CHART } = require('./api/urls.js');
 
 let commands = {
     '/start': () => {
@@ -42,14 +43,20 @@ async function analizeChart(interval, {
             interval
         });
         let msg = '';
-        
-        info.forEach((item) => {
+        let header = '<b>По следующим парам не удалось получить информацию: </b>';
+        let messages = [];
+        info.unsuccessful.forEach((item) => {
+            msg += `<a href="${URL_CHART}/${item.slice(0,-4)}_USDT?type=spot">${item}</a>, `
+        });
+        msg && messages.push(header + msg.replace(/, $/, '.'));
+
+        msg = ''
+        info.successful.forEach((item) => {
             if (!filter.includes(item.messageCode)) return;
             msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
         });
     
-        let messages = [];
-        let header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
+        header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
         if (msg.length <= maxMessageLength - header.length) {
             msg && messages.push(header + msg);
             return messages;
@@ -63,7 +70,7 @@ async function analizeChart(interval, {
             header = `<b>Анализ свечного графика(${interval})\nЧасть ${i + 1}</b>\n\n`;
             messages.push(header + part);
         }
-    
+
         return messages;
     } catch(error) {
         throw error;

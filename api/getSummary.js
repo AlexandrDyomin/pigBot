@@ -5,7 +5,7 @@ const { URL_CHART } = require('./urls.js');
 async function getSummary(data, { symbol,  quoteVolume }) {
     try {
         let res = await data;
-        if (res.length < 23) throw Error('Недостаточно данных для анализа');
+        if (res.length < 23) throw Error(`Недостаточно данных для расчёта индикатор BOLL для ${symbol}`);
         
         let beforePenultimateBOLL = calcBOLL(res.slice(0, -2));
         let penultimateBOLL = calcBOLL(res.slice(1, -1));

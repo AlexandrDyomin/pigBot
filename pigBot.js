@@ -68,7 +68,7 @@ bot.on('text', async (msg) => {
         }
         
         command = command.match(/\/\w*/)?.[0];
-        let messages = await commands[command]?.(...arguments);
+        let messages = await commands[command]?.(...arguments) || [];
         for (let msg of messages) {
             await bot.sendMessage(id, msg, { 
                 parse_mode: 'HTML', 

@@ -2,7 +2,7 @@ async function getBarsInfo({ url, symbol, interval, limit }, isSecondAttempt = f
     try {
         let response = await fetch(
             `${url}?symbol=${symbol}&interval=${interval}&limit=${limit}`,
-            { signal: AbortSignal.timeout(500) }
+            { signal: AbortSignal.timeout(900) }
         );
         if (!response.ok) throw Error(`Статусный код ответа: ${response.ok}`);
         return await response.json();

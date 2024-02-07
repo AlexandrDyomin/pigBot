@@ -3,7 +3,6 @@ const { URL_BARS_INFO, URL_MARKET_INFO } = require('./urls.js');
 const getSummary = require('./getSummary.js');
 const getInfoAboutCryptocurrencyPairs = require('./getInfoAboutCryptocurrencyPairs.js');
 
-
 async function callBinance({
     url = URL_MARKET_INFO, 
     quotedCoin = 'USDT', 
@@ -30,11 +29,14 @@ async function callBinance({
             store.push(getSummary(barsInfo, pair));
         } 
         
-        return (await Promise.allSettled(store)).reduce((acc, item) =>{
-            item.reason && console.log(item)
-            item.value && acc.push(item.value);
+        return (await Promise.allSettled(store)).reduce((acc, item) => {
+            item.value && acc.successful.push(item.value);
+            item.reason && acc.unsuccessful.push(item.reason.message.match(/\w+USDT/)[0]);
             return acc;
-        }, []);
+        }, { 
+            successful: [], 
+            unsuccessful: [] 
+        });
     } catch(error) {
         throw error;
     }
