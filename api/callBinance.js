@@ -28,7 +28,7 @@ async function callBinance({
             });
             store.push(getSummary(barsInfo, pair));
         } 
-        
+        Promise.allSettled(store).catch(console.log)
         return (await Promise.allSettled(store)).reduce((acc, item) => {
             item.value && acc.successful.push(item.value);
             item.reason && acc.unsuccessful.push(item.reason.message.match(/\w+USDT/)[0]);
