@@ -32,7 +32,7 @@ async function sendIndexPage(req, res) {
         });
         
         res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-        res.end(pug.renderFile('./index.pug', { info, interval, cache: true }));
+        res.end(pug.renderFile('./index.pug', { info: info.successful, interval, cache: true }));
     } catch (err) {
         handleError(res, err);
     }

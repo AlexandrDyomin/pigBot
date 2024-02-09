@@ -16,34 +16,34 @@ function analizePrice({
     let summary = {};
         
     if (wasCrossedBl) {
-        summary.messageCode = 1;
+        summary.messageCode = '1';
         summary.msg = 'Предыдущая свеча закрылась ниже нижней линии Боллинджера';
         summary.diviation = caclDiviationFromLine('bl');
         return summary;
     }
 
     if (wasCrossedTl) {
-        summary.messageCode = 2;
+        summary.messageCode = '2';
         summary.msg = 'Предыдущая свеча закрылась ниже верхней линии Боллинджера';
         summary.diviation = caclDiviationFromLine('tl');
         return summary;
     }
 
     if (isPriceNearBl) {
-        summary.messageCode = 3;
+        summary.messageCode = '3';
         summary.msg = 'Свеча рядом с нижней линией Боллиндженра';
         summary.diviation = caclDiviationFromLine('bl');
         return summary;
     }
 
     if (isPriceNearTl) {
-        summary.messageCode = 4;
+        summary.messageCode = '4';
         summary.msg = 'Свеча рядом с верхней линией Боллиндженра';
         summary.diviation = caclDiviationFromLine('tl');
         return summary;
     }
 
-    summary.code = 5;
+    summary.messageCode = '5';
     summary.msg = 'Свеча рядом со средней линией Боллиндженра';
     summary.diviation = caclDiviationFromLine('ml');
     return summary;

@@ -17,7 +17,6 @@ async function getInfoAboutCryptocurrencyPairs({
         order && filteredPairs.sort(orderFunctions[orderFunc]);
         return filteredPairs.slice(0, limit);
     } catch(error) {
-        console.error(error.message);
         throw error;
     }
 }

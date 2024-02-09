@@ -1,6 +1,7 @@
 const fs = require('fs');
 const commands = require('./pigBotCommands.js');
 const TelegramBot = require('node-telegram-bot-api');
+const { argv } = require('process');
 
 const bot = new TelegramBot(process.env.API_KEY_BOT, {
     polling: {
@@ -9,9 +10,16 @@ const bot = new TelegramBot(process.env.API_KEY_BOT, {
     }
 });
 
-let pathToContacts = './contacts.json';
-let contacts = JSON.parse(fs.readFileSync(pathToContacts));
-contacts.forEach(greet);
+let pathToContacts = './subscribers.json';
+let contacts;
+let log;
+
+try {
+    contacts = JSON.parse(fs.readFileSync(pathToContacts));
+    contacts.forEach(greet);
+} catch (error) {
+    console.error(error);
+}
 
 let menu = [
     {
@@ -28,7 +36,7 @@ let menu = [
     },
     {
         command: 'subscribe',
-        description: 'Подписаться на рассылку сообщений'
+        description: 'Подписаться на ежедневную рассылку сообщений'
     },
     {
         command: 'help',
@@ -38,43 +46,52 @@ let menu = [
 bot.setMyCommands(menu);
 
 bot.on('text', async (msg) => {
-    let { id } = msg.from;
-    let command = msg.text;
     try {
-        let arguments = [];
-        if (command === '/start') {
-            arguments = [contacts, id];
-        } 
-        
-        if (command.startsWith('/analize_')) {
-            let regExpKeyL = /-l\s(\d*)/;
-            let regExpKeyF = /-f\s(\d(,\s\d)*)/;
-            arguments = [{ 
-                limit: command.match(regExpKeyL)?.[1] || 100,
-                filter: command.match(regExpKeyF)?.[1] || [1, 2, 3, 4, 5],
+        let { id } = msg.from;
+        let command = msg.text;
+        let regExpKeyL = /-l\s(\d*)/;
+        let regExpKeyF = /-f\s(\d(,\s?\d)*)/;
+        let args = [{}];
+        if (/^\/analize_[h, d, w]c/.test(command)) {
+            if (command.length > command.match(/^\/analize_[h, d, w]c/)[0].length) {
+                args = [{ 
+                    limit: +command.match(regExpKeyL)?.[1],
+                    filter: command.match(regExpKeyF)?.[1].split(/,\s?/),
+                }];
+            }
+        }
+            
+        if (/^\/subscribe/.test(command)) {
+            let regExpKeyI = /-i\s(1[h, d, w])/;
+            let regExpKeyP = /-p\s(\d+[m, h, d])/;
+            
+            let periodicity = command.match(regExpKeyP)?.[1];
+            let factors = {
+                'm': 60000,
+                'h': 3600000,
+                'd': 86400000
+            };
+            let digit = periodicity?.match(/\d+/)?.[0];
+            let periodicityPerMs = digit * factors[periodicity?.match(/[m, h, d]$/)?.[0]];
+            let subscribtionId = setInterval(() => {
+                
+            }, periodicityPerMs);
+            args = [id, pathToContacts, {
+                periodicity: command.match(regExpKeyP)?.[1],
+                interval: command.match(regExpKeyI)?.[1],
+                filter: command.match(regExpKeyF)?.[1].split(/,\s?/) || ['1', '2', '3', '4', '5'],
+                limit: +command.match(regExpKeyL)?.[1] || 100
             }];
         }
-
-        if (command.startsWith('/subscribe')) {
-            let regExpKeyI;
-            let regExpKeyF;
-            let regExpKeyP;
-
-            arguments = [{
-                interval: command.match(regExpKeyI)?.[1] || '1d',
-                filter: command.match(regExpKeyF)?.[1] || [1, 2, 3, 4, 5],
-                periodicity: command.match(regExpKeyP)?.[1] || '1d'
-            }]
-        }
-        
+            
         command = command.match(/\/\w*/)?.[0];
-        let messages = await commands[command]?.(...arguments) || [];
-        for (let msg of messages) {
-            await bot.sendMessage(id, msg, { 
-                parse_mode: 'HTML', 
-                disable_web_page_preview: true 
-            });
-        }
+            let messages = await commands[command]?.(...args) || [];
+            for (let msg of messages) {
+                await bot.sendMessage(id, msg, { 
+                    parse_mode: 'HTML', 
+                    disable_web_page_preview: true 
+                });
+            }
     } catch(error) {
         console.error(error);
     }
@@ -82,6 +99,8 @@ bot.on('text', async (msg) => {
 
 bot.on('polling_error', err => console.log(err.data.error.message));
 
-function greet(id) {
+
+
+function greet({ id }) {
     bot.sendMessage(id, 'Hello');
 }
