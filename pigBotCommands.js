@@ -2,6 +2,8 @@ const fs = require('fs');
 const { URL_CHART } = require('./api/urls.js');
 const callBinance = require('./api/callBinance.js');
 
+let pathToContacts = './subscribers.json';
+
 let commands = {
     '/start': () => {
         return ['Привет!. Отправь команду <code>/help</code> чтобы узнать что я умею.'];
@@ -9,7 +11,8 @@ let commands = {
     '/analize_hc': analizeChart.bind(null, '1h'),
     '/analize_dc': analizeChart.bind(null, '1d'),
     '/analize_wc': analizeChart.bind(null, '1w'),
-    '/subscribe': subscribe,
+    '/subscribe': subscribe.bind(null, pathToContacts),
+    '/unsubscribe': unsubscribe.bind(null, pathToContacts),
     '/help': () => {
         return ([
             '<b>Бот информирует о положении свечей криптовалют, торгуемых за USDT и ' +
@@ -42,6 +45,8 @@ async function analizeChart(interval, {
             limit,
             interval
         });
+
+        // создание сообщения по с парами, по которым не удалось получить информацию
         let msg = '';
         let header = '<b>По следующим парам не удалось получить информацию: </b>';
         let messages = [];
@@ -50,6 +55,7 @@ async function analizeChart(interval, {
         });
         msg && messages.push(header + msg.replace(/, $/, '.'));
         
+        // создание сообщения
         msg = ''
         info.successful.forEach((item) => {
             if (!filter.includes(item.messageCode)) return;
@@ -62,6 +68,7 @@ async function analizeChart(interval, {
             return messages;
         };
         
+        // разбивка сообщения на несколько частей в случае превышения максимально допустимой длины
         let parts = msg.split('\n\n');
         let quantity = Math.ceil(msg.length / maxMessageLength);
         let step = Math.ceil(parts.length / quantity);
@@ -77,7 +84,7 @@ async function analizeChart(interval, {
     }
 }
 
-async function subscribe(contactId, pathToContacts, {
+async function subscribe(pathToContacts, contactId, {
     interval, 
     periodicity,
     filter = ['1', '2', '3', '4', '5'],
@@ -86,9 +93,9 @@ async function subscribe(contactId, pathToContacts, {
     try {
         if (!interval || !periodicity) return ['Недостаточно данных для подписки!'];
        
-        // запись в журнал
+        // проверка наличия контакта и подписки
         let log = JSON.parse(fs.readFileSync(pathToContacts));
-        let contact = log.find((item) => item.id === contactId);
+        let contact = getContact(log, contactId);
         if (!contact) {
             contact = { id: contactId, subscriptions: [] };
             log.push(contact);
@@ -98,32 +105,74 @@ async function subscribe(contactId, pathToContacts, {
                 subscription.interval === interval && 
                 subscription.periodicity === periodicity &&
                 subscription.limit === limit &&
-                compareArray(subscription.filter, filter
-            )
+                compareArray(subscription.filter, filter)
         ));
         if (!isSubscriptionExist) {
-            contact.subscriptions.push({
-                id: contact.subscriptions.length + 1,
+            let subscription = {
+                id: (contact.subscriptions.length + 1).toString(),
                 interval,
                 filter ,
                 periodicity,
                 limit,
-            });
+            };
 
+            contact.subscriptions.push(subscription);
+            // запись новой подписки в файл
             fs.writeFileSync(pathToContacts, JSON.stringify(log));
-            return ['Подписка оформлена'];
+
+            // установка интервала на сообщения
+            subscription.intervalId = setInterval(() => console.log('msg'), convertTimeToMs(periodicity));
+            return ['Подписка оформлена.'];
         }
-        
-        return ['Такая подписка была оформлена ранее'];
-        
-        function compareArray(f1, f2) {
-            let f1Copy = [...f1], f2Copy = [...f2];
-            (f1Copy.sort(), f2Copy.sort());
-            return JSON.stringify(f1Copy) === JSON.stringify(f2Copy);
-        }
+
+        return ['Такая подписка была оформлена ранее.'];
     } catch (error) {
         throw error;
     }
+
+    function compareArray(f1, f2) {
+        let f1Copy = [...f1], f2Copy = [...f2];
+        (f1Copy.sort(), f2Copy.sort());
+        return JSON.stringify(f1Copy) === JSON.stringify(f2Copy);
+    }
+}
+
+function unsubscribe(pathToContacts, contactId, ids) {
+    if (!ids || !ids.length) return ['Не передано ни одного id подписки для удаления!'];
+
+    let log = JSON.parse(fs.readFileSync(pathToContacts));
+    let subscriptions = getContact(log, contactId).subscriptions;
+    
+    let deleted = 0;
+    for (let id of ids) {
+        // остановим рассылку сообщений
+        // ...
+
+        let i = subscriptions.findIndex((item) => item.id === id);
+        i >= 0 && subscriptions.splice(i, 1) && deleted++;
+    }
+
+
+    // обновим базу
+    fs.writeFileSync(pathToContacts, JSON.stringify(log));
+    
+    return ids.length > 1 ? [`${deleted} из ${ids.length} подписок удалены.`] : ['Подписка удалена.'];
+}
+
+function getContact(data, contactId) {
+    return data.find((contact) => contact.id === contactId);
+}
+
+function convertTimeToMs(time) {
+    let factors = {
+        's': 1000,
+        'm': 60000,
+        'h': 3600000,
+        'd': 86400000
+    };
+
+    let digit = time?.match(/\d+/)?.[0];
+    return digit * factors[time?.match(/[s, m, h, d]$/)?.[0]];
 }
 
 module.exports = commands;
