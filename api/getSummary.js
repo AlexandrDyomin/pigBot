@@ -31,6 +31,7 @@ async function getSummary(data, { symbol,  quoteVolume }) {
     
         return result;
     } catch(error) {
+        console.log(error.message);
         throw error;
     }
 
