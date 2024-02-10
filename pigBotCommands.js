@@ -7,7 +7,7 @@ let commands = {
     '/start': (req, res) => {
         var { id } = req.from;
         var msg = 'Привет!. Отправь команду <code>/help</code> чтобы узнать что я умею.';
-        
+
         try {
             res.sendMessage(id, msg, { 
                 parse_mode: 'HTML'
@@ -19,8 +19,107 @@ let commands = {
     '/analize_hc': sendSummary.bind(null, '1h'),
     '/analize_dc': sendSummary.bind(null, '1d'),
     '/analize_wc': sendSummary.bind(null, '1w'),
-    '/subscribe': subscribe,
-    '/unsubscribe': unsubscribe,
+    '/subscribe': (req, res) => {
+        var { id } = req.from;
+        var command = req.text;
+        var props = {
+            periodicity: command.match(regExpKeyP)?.[1],
+            interval: command.match(regExpKeyI)?.[1],
+            filter: command.match(regExpKeyF)?.[1].split(/,\s*/),
+            limit: +command.match(regExpKeyL)?.[1] || undefined
+        }
+    
+        try {
+            let [msg, sub] = addSub(id, props);
+            res.sendMessage(id, msg);
+        } catch (error) {
+            throw error;
+        }
+    
+        function addSub(contactId, {
+            interval, 
+            periodicity,
+            filter = ['1', '2', '3', '4', '5'],
+            limit = 100
+        }) {
+            if (!interval || !periodicity) return ['Недостаточно данных для подписки!'];
+            
+            try {
+                // проверка наличия контакта и подписки
+                let db = JSON.parse(fs.readFileSync(pathToContacts));
+                let contact = getContact(db, contactId);
+                if (!contact) {
+                    contact = { id: contactId, subscriptions: [] };
+                    db.push(contact);
+                }
+        
+                let isSubscriptionExist = contact.subscriptions.find((subscription) => (
+                        subscription.interval === interval && 
+                        subscription.periodicity === periodicity &&
+                        subscription.limit === limit &&
+                        compareArray(subscription.filter, filter)
+                ));
+        
+                // обновление БД
+                if (!isSubscriptionExist) {
+                    let lastSub = contact.subscriptions.at(-1);
+                    let subscription = {
+                        id: lastSub ? (+lastSub.id + 1).toString() : '1',
+                        interval,
+                        filter ,
+                        periodicity,
+                        limit,
+                    };
+                    contact.subscriptions.push(subscription);
+                    fs.writeFileSync(pathToContacts, JSON.stringify(db));
+        
+                    return ['Подписка оформлена.', subscription];
+                }
+        
+                return ['Такая подписка была оформлена ранее.'];
+            } catch (error) {
+                throw error;
+            }
+        
+            function compareArray(f1, f2) {
+                let f1Copy = [...f1], f2Copy = [...f2];
+                (f1Copy.sort(), f2Copy.sort());
+                return JSON.stringify(f1Copy) === JSON.stringify(f2Copy);
+            }
+        }
+    },
+    '/unsubscribe': (req, res) => {
+        var { id } = req.from;
+        var command = req.text;
+        var props = command.match(regExpIds)?.[1].split(/,\s*/);
+    
+        try {
+            let [msg, deletedSubs] = deleteSub(id, props);
+            res.sendMessage(id, msg);
+        } catch (error) {
+            throw error;
+        }
+    
+        function deleteSub(contactId, ids) {
+            if (!ids || !ids.length) return ['Не передано ни одного id подписки для удаления!'];
+        
+            let db = JSON.parse(fs.readFileSync(pathToContacts));
+            let subscriptions = getContact(db, contactId).subscriptions;
+            
+            let deletedSubs = [];
+            for (let id of ids) {
+                let i = subscriptions.findIndex((item) => item.id === id);
+                i >= 0 && deletedSubs.push(subscriptions.splice(i, 1));
+            }
+        
+            // обновим базу
+            fs.writeFileSync(pathToContacts, JSON.stringify(db));
+            
+            return ids.length > 1 ? 
+                [`${deletedSubs.length} из ${ids.length} подписок удалены.`, deletedSubs] : 
+                ['Подписка удалена.', deletedSubs];
+        }
+    },
     '/help': (req, res) => {
         var { id } = req.from;
         var msg = '<b>Бот информирует о положении свечей криптовалют, торгуемых за USDT и ' +
@@ -118,109 +217,6 @@ async function analizeChart(interval, {
         return messages;
     } catch(error) {
         throw error;
-    }
-}
-
-function subscribe(req, res) {
-    var { id } = req.from;
-    var command = req.text;
-    var props = {
-        periodicity: command.match(regExpKeyP)?.[1],
-        interval: command.match(regExpKeyI)?.[1],
-        filter: command.match(regExpKeyF)?.[1].split(/,\s*/),
-        limit: +command.match(regExpKeyL)?.[1] || undefined
-    }
-
-    try {
-        let [msg, sub] = addSub(id, props);
-        res.sendMessage(id, msg);
-    } catch (error) {
-        throw error;
-    }
-
-    function addSub(contactId, {
-        interval, 
-        periodicity,
-        filter = ['1', '2', '3', '4', '5'],
-        limit = 100
-    }) {
-        if (!interval || !periodicity) return ['Недостаточно данных для подписки!'];
-        
-        try {
-            // проверка наличия контакта и подписки
-            let db = JSON.parse(fs.readFileSync(pathToContacts));
-            let contact = getContact(db, contactId);
-            if (!contact) {
-                contact = { id: contactId, subscriptions: [] };
-                db.push(contact);
-            }
-    
-            let isSubscriptionExist = contact.subscriptions.find((subscription) => (
-                    subscription.interval === interval && 
-                    subscription.periodicity === periodicity &&
-                    subscription.limit === limit &&
-                    compareArray(subscription.filter, filter)
-            ));
-    
-            // обновление БД
-            if (!isSubscriptionExist) {
-                let lastSub = contact.subscriptions.at(-1);
-                let subscription = {
-                    id: lastSub ? (+lastSub.id + 1).toString() : '1',
-                    interval,
-                    filter ,
-                    periodicity,
-                    limit,
-                };
-                contact.subscriptions.push(subscription);
-                fs.writeFileSync(pathToContacts, JSON.stringify(db));
-    
-                return ['Подписка оформлена.', subscription];
-            }
-    
-            return ['Такая подписка была оформлена ранее.'];
-        } catch (error) {
-            throw error;
-        }
-    
-        function compareArray(f1, f2) {
-            let f1Copy = [...f1], f2Copy = [...f2];
-            (f1Copy.sort(), f2Copy.sort());
-            return JSON.stringify(f1Copy) === JSON.stringify(f2Copy);
-        }
-    }
-}
-
-function unsubscribe(req, res) {
-    var { id } = req.from;
-    var command = req.text;
-    var props = command.match(regExpIds)?.[1].split(/,\s*/);
-
-    try {
-        let [msg, deletedSubs] = deleteSub(id, props);
-        res.sendMessage(id, msg);
-    } catch (error) {
-        throw error;
-    }
-
-    function deleteSub(contactId, ids) {
-        if (!ids || !ids.length) return ['Не передано ни одного id подписки для удаления!'];
-    
-        let db = JSON.parse(fs.readFileSync(pathToContacts));
-        let subscriptions = getContact(db, contactId).subscriptions;
-        
-        let deletedSubs = [];
-        for (let id of ids) {
-            let i = subscriptions.findIndex((item) => item.id === id);
-            i >= 0 && deletedSubs.push(subscriptions.splice(i, 1));
-        }
-    
-        // обновим базу
-        fs.writeFileSync(pathToContacts, JSON.stringify(db));
-        
-        return ids.length > 1 ? 
-            [`${deletedSubs.length} из ${ids.length} подписок удалены.`, deletedSubs] : 
-            ['Подписка удалена.', deletedSubs];
     }
 }
 
