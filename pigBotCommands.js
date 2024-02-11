@@ -43,7 +43,7 @@ let commands = {
                     try {
                         sendSummary({ interval, filter, limit }, req, res).catch(console.error);
                         sub.lastMsgTime = new Date();
-                        fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+                        updateBase();
                     } catch(error) {
                         console.error(error.message);
                     }
@@ -51,7 +51,7 @@ let commands = {
                 intervals.set(sub, intervalId);
                 sendSummary({ interval, filter, limit }, req, res).catch(console.error);
                 sub.lastMsgTime = new Date();
-                fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+                updateBase();
             }
         } catch (error) {
             console.error(error.messages);
@@ -91,7 +91,7 @@ let commands = {
                         limit,
                     };
                     contact.subscriptions.push(subscription);
-                    fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+                    updateBase();
         
                     return ['Подписка оформлена.', subscription];
                 }
@@ -137,7 +137,7 @@ let commands = {
         
             // обновим базу
             try {
-                fs.writeFileSync(pathToContacts, JSON.stringify(contacts));    
+                updateBase();    
                 return ids.length > 1 ? 
                     [`${deletedSubs.length} из ${ids.length} подписок удалены.`, deletedSubs] : 
                     ['Подписка удалена.', deletedSubs];
@@ -255,6 +255,10 @@ function convertTimeToMs(time) {
 
     let digit = time?.match(/\d+/)?.[0];
     return digit * factors[time?.match(/[s, m, h, d]$/)?.[0]];
+}
+
+function updateBase() {
+    fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
 }
 
 module.exports = commands;
