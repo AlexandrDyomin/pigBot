@@ -1,1 +1,1 @@
-[{"id":418415478,"subscriptions":[]}]
+[{"id":418415478,"subscriptions":[{"id":"1","interval":"1h","filter":["3"],"periodicity":"1m","limit":100},{"id":"2","interval":"1d","filter":["3"],"periodicity":"1m","limit":100},{"id":"3","interval":"1w","filter":["3"],"periodicity":"1m","limit":100},{"id":"4","interval":"1w","filter":["3","5"],"periodicity":"1m","limit":100}]}]

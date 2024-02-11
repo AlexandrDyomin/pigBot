@@ -34,12 +34,14 @@ let commands = {
             let [msg, sub] = addSub(id, props);
             res.sendMessage(id, msg);
             if (sub) {
-                let { periodicity, interval } = props;
-                let delay = convertTimeToMs(props.periodicity);
-                let intervalId = setInterval(sendSummary, delay, interval, req, res);
+                let { periodicity, interval, filter, limit } = props;
+                let delay = convertTimeToMs(periodicity);
+                let intervalId = setInterval(sendSummary, delay, { interval, filter, limit }, req, res);
+                store.set(sub, intervalId);
+                sendSummary({ interval, filter, limit }, req, res);
             }
         } catch (error) {
-            throw error;
+            console.error(error.messages);
         }
     
         function addSub(contactId, {
@@ -102,6 +104,9 @@ let commands = {
         try {
             let [msg, deletedSubs] = deleteSub(id, props);
             res.sendMessage(id, msg);
+            // deletedSubs.forEach((sub) => {
+            //     let intervalId = store.get(sub, intervalId);
+            // });
         } catch (error) {
             throw error;
         }
@@ -156,10 +161,6 @@ let commands = {
 async function sendSummary(props, req, res) {
     var { id } = req.from;
     var command = req.text;
-    // var props = {
-    //     limit: +command.match(regExpKeyL)?.[1] || undefined,
-    //     filter: command.match(regExpKeyF)?.[1].split(/,\s*/)
-    // };
     var mixin = { ...props };
     mixin.limit = mixin.limit || +command.match(regExpKeyL)?.[1] || undefined;
     mixin.filter = mixin.filter || command.match(regExpKeyF)?.[1].split(/,\s*/);
@@ -176,57 +177,56 @@ async function sendSummary(props, req, res) {
         throw error;
     }
 
-}
-
-async function analizeChart({ 
-    interval,
-    limit = 100, 
-    filter = ['1', '2', '3', '4', '5'], 
-    maxMessageLength = 4096,
-}) {
-    try {
-        if (!limit || !filter) return ['С командой переданы неверные агрументы!'];
-
-        let info = await callBinance({
-            limit,
-            interval
-        });
-
-        // создание сообщения по с парами, по которым не удалось получить информацию
-        let msg = '';
-        let header = '<b>По следующим парам не удалось получить информацию: </b>';
-        let messages = [];
-        info.unsuccessful.forEach((item) => {
-            msg += `<a href="${URL_CHART}/${item.slice(0,-4)}_USDT?type=spot">${item}</a>, `
-        });
-        msg && messages.push(header + msg.replace(/, $/, '.'));
-        
-        // создание сообщения
-        msg = ''
-        info.successful.forEach((item) => {
-            if (!filter.includes(item.messageCode)) return;
-            msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
-        });
-
-        if (msg.length <= maxMessageLength - header.length) {
-            header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
-            msg && messages.push(header + msg);
+    async function analizeChart({ 
+        interval,
+        limit = 100, 
+        filter = ['1', '2', '3', '4', '5'], 
+        maxMessageLength = 4096,
+    }) {
+        try {
+            if (!limit || !filter) return ['С командой переданы неверные агрументы!'];
+    
+            let info = await callBinance({
+                limit,
+                interval
+            });
+    
+            // создание сообщения по с парами, по которым не удалось получить информацию
+            let msg = '';
+            let header = '<b>По следующим парам не удалось получить информацию: </b>';
+            let messages = [];
+            info.unsuccessful.forEach((item) => {
+                msg += `<a href="${URL_CHART}/${item.slice(0,-4)}_USDT?type=spot">${item}</a>, `
+            });
+            msg && messages.push(header + msg.replace(/, $/, '.'));
+            
+            // создание сообщения
+            msg = ''
+            info.successful.forEach((item) => {
+                if (!filter.includes(item.messageCode)) return;
+                msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
+            });
+    
+            if (msg.length <= maxMessageLength - header.length) {
+                header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
+                msg && messages.push(header + msg);
+                return messages;
+            };
+            
+            // разбивка сообщения на несколько частей в случае превышения максимально допустимой длины
+            let parts = msg.split('\n\n');
+            let quantity = Math.ceil(msg.length / maxMessageLength);
+            let step = Math.ceil(parts.length / quantity);
+            for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop += step) {
+                let part = parts.slice(start, stop).join('\n\n');
+                header = `<b>Анализ свечного графика(${interval})\nЧасть ${i + 1}</b>\n\n`;
+                messages.push(header + part);
+            }
+    
             return messages;
-        };
-        
-        // разбивка сообщения на несколько частей в случае превышения максимально допустимой длины
-        let parts = msg.split('\n\n');
-        let quantity = Math.ceil(msg.length / maxMessageLength);
-        let step = Math.ceil(parts.length / quantity);
-        for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop += step) {
-            let part = parts.slice(start, stop).join('\n\n');
-            header = `<b>Анализ свечного графика(${interval})\nЧасть ${i + 1}</b>\n\n`;
-            messages.push(header + part);
+        } catch(error) {
+            throw error;
         }
-
-        return messages;
-    } catch(error) {
-        throw error;
     }
 }
 
