@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { contacts, intervals } = require('./store.js');
 const commands = require('./pigBotCommands.js');
 const TelegramBot = require('node-telegram-bot-api');
 const { pathToContacts } = require('./variables.js');
@@ -13,7 +14,7 @@ const bot = new TelegramBot(process.env.API_KEY_BOT, {
 
 
 try {
-    let contacts = JSON.parse(fs.readFileSync(pathToContacts));
+    // let contacts = JSON.parse(fs.readFileSync(pathToContacts));
     contacts.forEach(greet);
 } catch (error) {
     console.error(error);

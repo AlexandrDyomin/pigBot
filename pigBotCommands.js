@@ -1,23 +1,26 @@
 const fs = require('fs');
-const store = require('./store.js');
 const { URL_CHART } = require('./api/urls.js');
 const callBinance = require('./api/callBinance.js');
-const { pathToContacts, regExpKeyI, regExpKeyP, regExpKeyL, regExpKeyF, regExpIds } = require('./variables.js');
+const { contacts, intervals } = require('./store.js');
+const { 
+    pathToContacts, 
+    regExpKeyI, 
+    regExpKeyP, 
+    regExpKeyL, 
+    regExpKeyF, 
+    regExpIds 
+} = require('./variables.js');
 
 let commands = {
     '/start': (req, res) => {
         var { id } = req.from;
         var msg = 'Привет!. Отправь команду <code>/help</code> чтобы узнать что я умею.';
 
-        try {
-            res.sendMessage(id, msg, { 
-                parse_mode: 'HTML'
-            }); 
-        } catch (error) {
-            throw error;
-        }
+        res.sendMessage(id, msg, { 
+            parse_mode: 'HTML'
+        }).catch(console.error); 
     },
-    '/analize_hc': sendSummary.bind(null, { interval: '1h'}),
+    '/analize_hc': sendSummary.bind(null, { interval: '1h' }),
     '/analize_dc': sendSummary.bind(null, { interval: '1d' }),
     '/analize_wc': sendSummary.bind(null, { interval: '1w' }),
     '/subscribe': (req, res) => {
@@ -32,13 +35,23 @@ let commands = {
     
         try {
             let [msg, sub] = addSub(id, props);
-            res.sendMessage(id, msg);
+            res.sendMessage(id, msg).catch(console.error);
             if (sub) {
                 let { periodicity, interval, filter, limit } = props;
                 let delay = convertTimeToMs(periodicity);
-                let intervalId = setInterval(sendSummary, delay, { interval, filter, limit }, req, res);
-                store.set(sub, intervalId);
-                sendSummary({ interval, filter, limit }, req, res);
+                let intervalId = setInterval(() => {
+                    try {
+                        sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+                        sub.lastMsgTime = new Date();
+                        fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+                    } catch(error) {
+                        console.error(error.message);
+                    }
+                }, delay);
+                intervals.set(sub, intervalId);
+                sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+                sub.lastMsgTime = new Date();
+                fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
             }
         } catch (error) {
             console.error(error.messages);
@@ -54,11 +67,10 @@ let commands = {
             
             try {
                 // проверка наличия контакта и подписки
-                let db = JSON.parse(fs.readFileSync(pathToContacts));
-                let contact = getContact(db, contactId);
+                let contact = getContact(contacts, contactId);
                 if (!contact) {
                     contact = { id: contactId, subscriptions: [] };
-                    db.push(contact);
+                    contacts.push(contact);
                 }
         
                 let isSubscriptionExist = contact.subscriptions.find((subscription) => (
@@ -79,7 +91,7 @@ let commands = {
                         limit,
                     };
                     contact.subscriptions.push(subscription);
-                    fs.writeFileSync(pathToContacts, JSON.stringify(db));
+                    fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
         
                     return ['Подписка оформлена.', subscription];
                 }
@@ -103,10 +115,11 @@ let commands = {
     
         try {
             let [msg, deletedSubs] = deleteSub(id, props);
-            res.sendMessage(id, msg);
-            // deletedSubs.forEach((sub) => {
-            //     let intervalId = store.get(sub, intervalId);
-            // });
+            res.sendMessage(id, msg).catch(console.error);
+            deletedSubs.forEach((sub) => {
+                let intervalId = intervals.get(sub);
+                clearInterval(intervalId);
+            });
         } catch (error) {
             throw error;
         }
@@ -114,21 +127,23 @@ let commands = {
         function deleteSub(contactId, ids) {
             if (!ids || !ids.length) return ['Не передано ни одного id подписки для удаления!'];
         
-            let db = JSON.parse(fs.readFileSync(pathToContacts));
-            let subscriptions = getContact(db, contactId).subscriptions;
+            let subscriptions = getContact(contacts, contactId).subscriptions;
             
             let deletedSubs = [];
             for (let id of ids) {
                 let i = subscriptions.findIndex((item) => item.id === id);
-                i >= 0 && deletedSubs.push(subscriptions.splice(i, 1));
+                i >= 0 && deletedSubs.push((subscriptions.splice(i, 1))[0]);
             }
         
             // обновим базу
-            fs.writeFileSync(pathToContacts, JSON.stringify(db));
-            
-            return ids.length > 1 ? 
-                [`${deletedSubs.length} из ${ids.length} подписок удалены.`, deletedSubs] : 
-                ['Подписка удалена.', deletedSubs];
+            try {
+                fs.writeFileSync(pathToContacts, JSON.stringify(contacts));    
+                return ids.length > 1 ? 
+                    [`${deletedSubs.length} из ${ids.length} подписок удалены.`, deletedSubs] : 
+                    ['Подписка удалена.', deletedSubs];
+            } catch (error) {
+                throw error;
+            }
         }
     },
     '/help': (req, res) => {
@@ -148,13 +163,9 @@ let commands = {
             '   <i>4 - Свеча рядом с верхней линией Боллиндженра</i> \n' +
             '   <i>5 - Свеча рядом со средней линией Боллиндженра</i>';
 
-        try {
-            res.sendMessage(id, msg, { 
-                parse_mode: 'HTML'
-            }); 
-        } catch (error) {
-            throw error;
-        }
+        res.sendMessage(id, msg, { 
+            parse_mode: 'HTML'
+        }).catch(console.error); 
     }
 }
 
