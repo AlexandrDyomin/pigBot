@@ -1,4 +1,5 @@
 const fs = require('fs');
+const store = require('./store.js');
 const { URL_CHART } = require('./api/urls.js');
 const callBinance = require('./api/callBinance.js');
 const { pathToContacts, regExpKeyI, regExpKeyP, regExpKeyL, regExpKeyF, regExpIds } = require('./variables.js');
@@ -16,9 +17,9 @@ let commands = {
             throw error;
         }
     },
-    '/analize_hc': sendSummary.bind(null, '1h'),
-    '/analize_dc': sendSummary.bind(null, '1d'),
-    '/analize_wc': sendSummary.bind(null, '1w'),
+    '/analize_hc': sendSummary.bind(null, { interval: '1h'}),
+    '/analize_dc': sendSummary.bind(null, { interval: '1d' }),
+    '/analize_wc': sendSummary.bind(null, { interval: '1w' }),
     '/subscribe': (req, res) => {
         var { id } = req.from;
         var command = req.text;
@@ -32,6 +33,11 @@ let commands = {
         try {
             let [msg, sub] = addSub(id, props);
             res.sendMessage(id, msg);
+            if (sub) {
+                let { periodicity, interval } = props;
+                let delay = convertTimeToMs(props.periodicity);
+                let intervalId = setInterval(sendSummary, delay, interval, req, res);
+            }
         } catch (error) {
             throw error;
         }
@@ -147,16 +153,19 @@ let commands = {
     }
 }
 
-async function sendSummary(interval, req, res) {
+async function sendSummary(props, req, res) {
     var { id } = req.from;
     var command = req.text;
-    var props = {
-        limit: +command.match(regExpKeyL)?.[1] || undefined,
-        filter: command.match(regExpKeyF)?.[1].split(/,\s*/)
-    };
+    // var props = {
+    //     limit: +command.match(regExpKeyL)?.[1] || undefined,
+    //     filter: command.match(regExpKeyF)?.[1].split(/,\s*/)
+    // };
+    var mixin = { ...props };
+    mixin.limit = mixin.limit || +command.match(regExpKeyL)?.[1] || undefined;
+    mixin.filter = mixin.filter || command.match(regExpKeyF)?.[1].split(/,\s*/);
 
     try {
-        var messages = await analizeChart(interval, props);
+        var messages = await analizeChart(mixin);
         for (let msg of messages) {
             await res.sendMessage(id, msg, { 
                 parse_mode: 'HTML', 
@@ -169,7 +178,8 @@ async function sendSummary(interval, req, res) {
 
 }
 
-async function analizeChart(interval, { 
+async function analizeChart({ 
+    interval,
     limit = 100, 
     filter = ['1', '2', '3', '4', '5'], 
     maxMessageLength = 4096,
