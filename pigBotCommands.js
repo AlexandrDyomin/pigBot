@@ -23,6 +23,7 @@ let commands = {
     '/analize_hc': sendSummary.bind(null, { interval: '1h' }),
     '/analize_dc': sendSummary.bind(null, { interval: '1d' }),
     '/analize_wc': sendSummary.bind(null, { interval: '1w' }),
+    '/analize_mc': sendSummary.bind(null, { interval: '1M' }),
     '/subscribe': (req, res) => {
         var { id } = req.from;
         var command = req.text;
@@ -37,21 +38,22 @@ let commands = {
             let [msg, sub] = addSub(id, props);
             res.sendMessage(id, msg).catch(console.error);
             if (sub) {
-                let { periodicity, interval, filter, limit } = props;
-                let delay = convertTimeToMs(periodicity);
-                let intervalId = setInterval(() => {
-                    try {
-                        sendSummary({ interval, filter, limit }, req, res).catch(console.error);
-                        sub.lastMsgTime = new Date();
-                        updateBase();
-                    } catch(error) {
-                        console.error(error.message);
-                    }
-                }, delay);
-                intervals.set(sub, intervalId);
-                sendSummary({ interval, filter, limit }, req, res).catch(console.error);
-                sub.lastMsgTime = new Date();
-                updateBase();
+                activateSub(sub, req, res);
+                // let { periodicity, interval, filter, limit } = props;
+                // let delay = convertTimeToMs(periodicity);
+                // let intervalId = setInterval(() => {
+                //     try {
+                //         sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+                //         sub.lastMsgTime = new Date();
+                //         updateBase();
+                //     } catch(error) {
+                //         console.error(error.message);
+                //     }
+                // }, delay);
+                // intervals.set(sub, intervalId);
+                // sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+                // sub.lastMsgTime = new Date();
+                // updateBase();
             }
         } catch (error) {
             console.error(error.messages);
@@ -261,4 +263,22 @@ function updateBase() {
     fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
 }
 
-module.exports = commands;
+function activateSub(sub, req, res) {
+    let { periodicity, interval, filter, limit } = sub;
+    let delay = convertTimeToMs(periodicity);
+    let intervalId = setInterval(() => {
+        try {
+            sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+            sub.lastMsgTime = new Date();
+            updateBase();
+        } catch(error) {
+            console.error(error.message);
+        }
+    }, delay);
+    intervals.set(sub, intervalId);
+    sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+    sub.lastMsgTime = new Date();
+    updateBase();
+}
+
+module.exports =  { commands, activateSub };

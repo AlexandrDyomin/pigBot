@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { contacts, intervals } = require('./store.js');
-const commands = require('./pigBotCommands.js');
+const { commands, activateSub } = require('./pigBotCommands.js');
 const TelegramBot = require('node-telegram-bot-api');
 const { pathToContacts } = require('./variables.js');
 
@@ -12,13 +12,12 @@ const bot = new TelegramBot(process.env.API_KEY_BOT, {
     }
 });
 
-
-try {
-    // let contacts = JSON.parse(fs.readFileSync(pathToContacts));
-    contacts.forEach(greet);
-} catch (error) {
-    console.error(error);
-}
+contacts.forEach((contact) => {
+    var { id } = contact
+    contact.subscriptions.forEach((subscription) => {
+       activateSub(subscription, { from: { id } }, bot);
+    });
+});
 
 let menu = [
     {
@@ -32,6 +31,10 @@ let menu = [
     {
         command: 'analize_wc',
         description: 'Узнать положение свечи с интервалом 1w'
+    },
+    {
+        command: 'analize_mc',
+        description: 'Узнать положение свечи с интервалом 1M'
     },
     {
         command: 'help',
@@ -49,7 +52,3 @@ bot.on('text', async (msg) => {
 });
 
 bot.on('polling_error', err => console.log(err.data.error.message));
-
-function greet({ id }) {
-    bot.sendMessage(id, 'Hello');
-}

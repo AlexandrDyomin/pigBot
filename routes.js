@@ -20,7 +20,7 @@ async function sendIndexPage(req, res) {
     try {
         let url = new URL(`${req.headers.host}${req.url}`);
         let interval = url.searchParams.get('interval') || '1d' ;
-        let validIntervals = ['1h', '1d', '1w'];
+        let validIntervals = ['1h', '1d', '1w', '1M'];
 
         if (!validIntervals.includes(interval)) {
             throw Error('Указан недопустимый интервал. Укажите любой из следующих интервалов: 1d, 1w, 1M');
