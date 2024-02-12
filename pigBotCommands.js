@@ -210,19 +210,20 @@ async function sendSummary(props, req, res) {
                 msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
             });
     
-            if (msg.length <= maxMessageLength - header.length) {
-                header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
+            header = `<b>Анализ свечного графика(${interval})</b>\n\n`;
+            if (msg.length + header.length <= maxMessageLength) {
                 msg && messages.push(header + msg);
                 return messages;
             };
             
             // разбивка сообщения на несколько частей в случае превышения максимально допустимой длины
             let parts = msg.split('\n\n');
-            let quantity = Math.ceil(msg.length / maxMessageLength);
+            header = `<b>Анализ свечного графика(${interval})\nЧасть `;
+            let quantity = Math.ceil((msg.length + header.length) / maxMessageLength);
             let step = Math.ceil(parts.length / quantity);
             for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop += step) {
                 let part = parts.slice(start, stop).join('\n\n');
-                header = `<b>Анализ свечного графика(${interval})\nЧасть ${i + 1}</b>\n\n`;
+                header += `${i + 1}</b>\n\n`;
                 messages.push(header + part);
             }
     
