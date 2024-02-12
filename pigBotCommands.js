@@ -187,7 +187,8 @@ async function sendSummary(props, req, res) {
             });
         }
     } catch(error) {
-        throw error;
+        res.sendMessage(id, error.message);
+        console.error(error);
     }
 
     async function analizeChart({ 
