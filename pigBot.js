@@ -47,6 +47,7 @@ bot.on('text', async (msg) => {
     try {
         commands[msg.text.match(/\/\w*/)?.[0]]?.(msg, bot);
     } catch(error) {
+        bot.sendMessage(msg.from, error.message);
         console.error(error);
     }
 });
