@@ -33,7 +33,7 @@ let commands = {
             filter: command.match(regExpKeyF)?.[1].split(/,\s*/),
             limit: +command.match(regExpKeyL)?.[1] || undefined
         }
-    
+        console.log(props, command, command.match(regExpKeyF)?.[1])
         try {
             let [msg, sub] = addSub(id, props);
             res.sendMessage(id, msg).catch(console.error);
