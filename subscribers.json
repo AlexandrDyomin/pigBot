@@ -1,1 +1,17 @@
-[{"id":418415478,"subscriptions":[]}]
+[
+    {
+        "id": 418415478,
+        "subscriptions": [
+            {
+                "id": "1",
+                "interval": "1d",
+                "filter": [
+                    "3"
+                ],
+                "periodicity": "5m",
+                "limit": 100,
+                "lastMsgTime": "2024-02-12T04:06:33.738Z"
+            }
+        ]
+    }
+]

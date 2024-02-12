@@ -39,21 +39,10 @@ let commands = {
             res.sendMessage(id, msg).catch(console.error);
             if (sub) {
                 activateSub(sub, req, res);
-                // let { periodicity, interval, filter, limit } = props;
-                // let delay = convertTimeToMs(periodicity);
-                // let intervalId = setInterval(() => {
-                //     try {
-                //         sendSummary({ interval, filter, limit }, req, res).catch(console.error);
-                //         sub.lastMsgTime = new Date();
-                //         updateBase();
-                //     } catch(error) {
-                //         console.error(error.message);
-                //     }
-                // }, delay);
-                // intervals.set(sub, intervalId);
-                // sendSummary({ interval, filter, limit }, req, res).catch(console.error);
-                // sub.lastMsgTime = new Date();
-                // updateBase();
+                let { interval, filter, limit } = sub;
+                sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+                sub.lastMsgTime = new Date();
+                updateBase();
             }
         } catch (error) {
             console.error(error.messages);
@@ -261,7 +250,11 @@ function convertTimeToMs(time) {
 }
 
 function updateBase() {
-    fs.writeFileSync(pathToContacts, JSON.stringify(contacts));
+    try {
+        fs.writeFileSync(pathToContacts, JSON.stringify(contacts, null, 4));
+    } catch(error) {
+        throw error;
+    }
 }
 
 function activateSub(sub, req, res) {
@@ -277,9 +270,6 @@ function activateSub(sub, req, res) {
         }
     }, delay);
     intervals.set(sub, intervalId);
-    sendSummary({ interval, filter, limit }, req, res).catch(console.error);
-    sub.lastMsgTime = new Date();
-    updateBase();
 }
 
-module.exports =  { commands, activateSub };
+module.exports =  { commands, activateSub, convertTimeToMs, sendSummary, updateBase };
