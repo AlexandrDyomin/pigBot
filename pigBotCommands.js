@@ -210,7 +210,7 @@ async function sendSummary(props, req, res) {
                 msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
             });
     
-            header = `<b>Анализ свечных графиков(${interval}) топ ${limit} криптовалют</b>\n\n`;
+            header = `<b>Анализ свечных графиков(${interval}) топ ${limit} криптовалют\nФильтры [${filter.join(', ')}]</b>\n\n`;
             if (msg.length + header.length <= maxMessageLength) {
                 msg && messages.push(header + msg);
                 return messages;
@@ -222,7 +222,7 @@ async function sendSummary(props, req, res) {
             let step = Math.ceil(parts.length / quantity);
             for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop += step) {
                 let part = parts.slice(start, stop).join('\n\n');
-                header = `<b>Анализ свечных графиков(${interval})  топ ${limit} криптовалют\nЧасть ${i + 1}</b>\n\n`;
+                header = `<b>Анализ свечных графиков(${interval})  топ ${limit} криптовалют\nФильтры [${filter.join(', ')}]\nЧасть ${i + 1}</b>\n\n`;
                 messages.push(header + part);
             }
     
