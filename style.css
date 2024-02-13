@@ -93,14 +93,20 @@ a:visited {
 
 .sortButton svg {
     display: block;
+    pointer-events: none;
 }
 
 .nowrap {
     white-space: nowrap;
 }
 
+.asc {
+    --bottomArrowColor: rgb(255, 149, 0);
+}
 
-
+.desc {
+    --topArrowColor: rgb(255, 149, 0);
+}
 
 @media screen and (max-width: 520px) {
     body {

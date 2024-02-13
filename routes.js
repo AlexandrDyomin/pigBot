@@ -13,6 +13,10 @@ let routes = {
         source: './handleIntervalChange.js', 
         contentType: 'application/javascript'
     }),
+    '/handleSortChange.js': (req, res) => sendResource(res, { 
+        source: './handleSortChange.js', 
+        contentType: 'application/javascript'
+    }),
     default: postPage404
 };
 

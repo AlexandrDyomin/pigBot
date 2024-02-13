@@ -69,4 +69,4 @@ bot.on('text', async (msg) => {
     }
 });
 
-bot.on('polling_error', err => console.log(err.data.error.message));
+bot.on('polling_error', err => console.log(err));
