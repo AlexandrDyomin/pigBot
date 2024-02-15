@@ -9,12 +9,24 @@ let routes = {
         source: './style.css', 
         contentType: 'text/css'
     }),
+    '/dropdown/dropdown.css': (req, res) => sendResource(res, { 
+        source: './dropdown/dropdown.css', 
+        contentType: 'text/css'
+    }),
+    '/triangle.svg': (req, res) => sendResource(res, { 
+        source: './triangle.svg', 
+        contentType: 'image/svg+xml'
+    }),
     '/handleIntervalChange.js': (req, res) => sendResource(res, { 
         source: './handleIntervalChange.js', 
         contentType: 'application/javascript'
     }),
     '/handleSortChange.js': (req, res) => sendResource(res, { 
         source: './handleSortChange.js', 
+        contentType: 'application/javascript'
+    }),
+    '/dropdown/dropdown.js': (req, res) => sendResource(res, { 
+        source: './dropdown/dropdown.js', 
         contentType: 'application/javascript'
     }),
     default: postPage404

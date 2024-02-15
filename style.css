@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Anek Odia', sans-serif;
     font-size: 15px;
@@ -27,6 +31,10 @@ body {
     vertical-align: bottom;
 }
 
+.page > table th > .dropdown {
+    vertical-align: bottom;
+}
+
 .page > table td, th {
     padding: 5px;
     padding-right: 15px;
@@ -50,7 +58,7 @@ caption {
 
 thead,
 tbody {
-    opacity: 0.7;
+    color: rgba(0, 0, 0, 0.7);
 }
 
 table a {

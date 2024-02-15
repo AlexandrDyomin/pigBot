@@ -5,9 +5,12 @@ html(lang="ru")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
         title Document
         link(rel="stylesheet", href="style.css")
+        link(rel="stylesheet", href="dropdown/dropdown.css")
         script(type="module", src="handleIntervalChange.js" defer) 
         script(type="module", src="handleSortChange.js" defer) 
+        script(type="module", src="dropdown/dropdown.js" defer) 
         include ./tableRow.pug
+        include ./dropdown/dropdown.pug
     body
         svg(xmlns="http://www.w3.org/2000/svg" style="display:none;")
             symbol#sorting-order(viewBox="0 0 401.998 401.998")
@@ -37,7 +40,29 @@ html(lang="ru")
                 thead
                     tr
                         th Тикер
-                        th Положение свечи
+                        th Положение свечи 
+                            +dropdown([
+                                {
+                                    code: '1',
+                                    msg: 'Предыдущая свеча закрылась ниже нижней линии Боллинджера'
+                                },
+                                {
+                                    code: '2',
+                                    msg: 'Предыдущая свеча закрылась ниже верхней линии Боллинджера'
+                                },
+                                {
+                                    code: '3',
+                                    msg: 'Свеча рядом с нижней линией Боллиндженра'
+                                },
+                                {
+                                    code: '4',
+                                    msg: 'Свеча рядом с верхней линией Боллиндженра'
+                                },
+                                {
+                                    code: '5',
+                                    msg: 'Свеча рядом со средней линией Боллиндженра'
+                                }
+                            ])
                         th.nowrap Цена(USDT) 
                             button.sortButton(data-param="price")
                                 svg(width="16px" height="16px")
