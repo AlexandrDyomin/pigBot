@@ -95,13 +95,18 @@ a:visited {
     height: 16px;
     border: none;
     cursor: pointer;
-    background-color: transparent;
+    background-color: white;
     padding: 0;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.20);
+    border-radius: 50%;
+    width: 1.2rem;
+    height: 1.2rem;
 }
 
 .sortButton svg {
     display: block;
     pointer-events: none;
+    margin: 0 auto;
 }
 
 .nowrap {
@@ -114,6 +119,10 @@ a:visited {
 
 .desc {
     --topArrowColor: rgb(255, 149, 0);
+}
+
+.hidden {
+    display: none;
 }
 
 @media screen and (max-width: 520px) {

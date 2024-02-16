@@ -1,6 +1,8 @@
 mixin dropdown(items) 
     .dropdown(tabindex='-1')
-        button.dropdown__btn(type="button") 
+        button.dropdown__btn(type="button")
+            svg(width="10px" height="10px")
+                use(xlink:href="#msg-filter")
         ul.dropdown__list
             each item in items
                 li.dropdown__item

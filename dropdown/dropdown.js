@@ -5,6 +5,7 @@ document.querySelectorAll('.dropdown__btn').forEach((btn) => {
 document.querySelectorAll('.dropdown').forEach((dropdown) => {
     dropdown.addEventListener('keydown', handleDropdownPointerdown);
     dropdown.addEventListener('focusout', handleDropdownFocusout);
+    dropdown.addEventListener('change', handleDropdownChange);
 });
 
 function handleDropdownBtn(e) {
@@ -121,4 +122,13 @@ function switchDropdownState(dropdownElement) {
     } else {
         openDropdown(dropdownElement);
     }
+}
+
+function handleDropdownChange(e) {
+    var { value } = e.target;
+    var rows = [ ...document.querySelector('#boll tbody').children];
+    rows.forEach((row) => {
+        let messageCode = row.children[1].dataset.messageCode;
+        messageCode === value && row.classList.toggle('hidden');
+    });
 }

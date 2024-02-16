@@ -6,16 +6,19 @@
 .dropdown__btn {
     width: 1.2rem;
     height: 1.2rem;
-    box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.10);
+    box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.20);
     border-radius: 50%;
-    background-image: url("/triangle.svg");
-    background-repeat: no-repeat;
-    background-position: center;
     background-color: white;
     cursor: pointer;
     border: none;
     display: block;
     padding: 0;
+}
+
+.dropdown__btn svg {
+    display: block;
+    pointer-events: none;
+    margin: 0 auto;
 }
 
 .dropdown__btn_active::before,
@@ -31,7 +34,7 @@
 .dropdown__btn_active::before {
     top: 50%;
     background: white;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.10);
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.20);
 }
 
 .dropdown__list::after {
@@ -47,11 +50,11 @@
     position: absolute;
     left: 0;
     background: white;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.10);
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.20);
     border-top-left-radius: 0;
-    border-top-right-radius: 1.5rem;
-    border-bottom-left-radius: 1.5rem;
-    border-bottom-right-radius: 1.5rem;
+    border-top-right-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
     max-width: 320px;
     width: max-content;
     z-index: -1;
@@ -67,7 +70,7 @@
 }
 
 .dropdown__item {
-    border-radius: 1.5rem;
+    border-radius: 1rem;
     padding: 5px 12px;
     transition: background .3s;
 
