@@ -195,37 +195,38 @@ async function sendSummary(props, req, res) {
             });
     
             // создание сообщения по с парами, по которым не удалось получить информацию
-            let msg = '';
-            let header = '<b>По следующим парам не удалось получить информацию: </b>';
+            let note = '';
+            let noteHeader = '<b>По следующим парам не удалось получить информацию: </b>';
             let messages = [];
             info.unsuccessful.forEach((item) => {
-                msg += `<a href="${URL_CHART}/${item.slice(0,-4)}_USDT?type=spot">${item}</a>, `
+                note += `<a href="${URL_CHART}/${item.slice(0,-4)}_USDT?type=spot">${item}</a>, `
             });
-            msg && messages.push(header + msg.replace(/, $/, '.'));
+            note && (note = noteHeader + note.replace(/, $/, '.'));
             
             // создание сообщения
-            msg = ''
+            let msg = ''
             info.successful.forEach((item) => {
                 if (!filter.includes(item.messageCode)) return;
                 msg += `<a href="${item.chart}">${item.symbol}</a>\n<b>${item.msg}</b>\nЦена: ${item.currentPrice}\nОбъём за 24ч(USD): ${item.quoteVolume}\nОтклонение цены от линии Боллинджера(%): ${item.diviation}\n\n`;
             });
+            msg = msg + note;
     
-            header = `<b>Анализ свечных графиков(${interval}) топ ${limit} криптовалют\nФильтры [${filter.join(', ')}]</b>\n\n`;
-            if (msg.length + header.length <= maxMessageLength) {
+            let header = `<b>Анализ свечных графиков(${interval})\nТоп ${limit} криптовалют\nФильтры [${filter.join(', ')}]</b>\n\n`;
+            if (msg.length <= maxMessageLength) {
                 msg && messages.push(header + msg);
                 return messages;
             };
             
             // разбивка сообщения на несколько частей в случае превышения максимально допустимой длины
             let parts = msg.split('\n\n');
-            let quantity = Math.ceil(msg.length / maxMessageLength);
+            let quantity = Math.ceil(msg.length / (maxMessageLength - header.length - 15));
             let step = Math.ceil(parts.length / quantity);
             for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop += step) {
                 let part = parts.slice(start, stop).join('\n\n');
-                header = `<b>Анализ свечных графиков(${interval})  топ ${limit} криптовалют\nФильтры [${filter.join(', ')}]\nЧасть ${i + 1}</b>\n\n`;
+                header = `<b>Анализ свечных графиков(${interval})\nТоп ${limit} криптовалют\nФильтры [${filter.join(', ')}]\nЧасть ${i + 1}</b>\n\n`;
                 messages.push(header + part);
             }
-    
+
             return messages;
         } catch(error) {
             throw error;
