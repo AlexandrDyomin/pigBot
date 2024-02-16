@@ -128,7 +128,13 @@ function handleDropdownChange(e) {
     var { value } = e.target;
     var rows = [ ...document.querySelector('#boll tbody').children];
     rows.forEach((row) => {
-        let messageCode = row.children[1].dataset.messageCode;
+        var messageCode = row.children[1].dataset.messageCode;
         messageCode === value && row.classList.toggle('hidden');
     });
+
+    var dropdown = e.currentTarget;
+    var ckeckBoxes = [...dropdown.querySelectorAll('.dropdown__check')];
+    var states = ckeckBoxes.map((checkbox) => checkbox.checked);
+    states.includes(true) ? 
+        dropdown.classList.add('colorFilter') : dropdown.classList.remove('colorFilter');
 }

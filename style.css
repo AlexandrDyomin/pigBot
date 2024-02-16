@@ -121,6 +121,10 @@ a:visited {
     --topArrowColor: rgb(255, 149, 0);
 }
 
+.colorFilter {
+    --colorFilter: rgb(255, 149, 0);
+}
+
 .hidden {
     display: none;
 }
