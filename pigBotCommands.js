@@ -212,7 +212,7 @@ async function sendSummary(props, req, res) {
             msg = msg + note;
     
             let header = `<b>Анализ свечных графиков(${interval})\nТоп ${limit} криптовалют\nФильтры [${filter.join(', ')}]</b>\n\n`;
-            if (msg.length <= maxMessageLength) {
+            if (msg.length + header.length <= maxMessageLength) {
                 msg && messages.push(header + msg);
                 return messages;
             };
@@ -224,7 +224,7 @@ async function sendSummary(props, req, res) {
             for (let i = 0, start = i, stop = step; i < quantity; i++, start += step, stop += step) {
                 let part = parts.slice(start, stop).join('\n\n');
                 header = `<b>Анализ свечных графиков(${interval})\nТоп ${limit} криптовалют\nФильтры [${filter.join(', ')}]\nЧасть ${i + 1}</b>\n\n`;
-                messages.push(header + part);
+                part && messages.push(header + part);
             }
 
             return messages;
