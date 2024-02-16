@@ -6,4 +6,4 @@ mixin tableRow({ symbol, msg, chart, currentPrice, quoteVolume, diviation, messa
         td(data-message-code=messageCode)=msg
         td(data-value=parseFloat(currentPrice.slice(1)))=currentPrice
         td(data-value=parseFloat(quoteVolume.slice(1, -4)))=quoteVolume
-        td(class= diviation > 0 ? "rise" : "fall" data-value=parseFloat(diviation.slice(0, -1)))=diviation
+        td(class= parseFloat(diviation.slice(0, -1)) > 0 ? "rise" : "fall" data-value=parseFloat(diviation.slice(0, -1)))=diviation
