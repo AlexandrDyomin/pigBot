@@ -1,9 +1,10 @@
 mixin tableRow({ symbol, msg, chart, currentPrice, quoteVolume, diviation, messageCode })
-    - let rowClasses = { '1': 'buy', '2': 'sell' }
+    - let diviationDigit = parseFloat(diviation.slice(0, -1));
+    - let rowClasses = { '1': diviationDigit > 0 ? 'buy' : '', '2': diviationDigit < 0 ? 'sell' : '' }
     tr(class=rowClasses[messageCode])
         td
             a(href=chart target="_blank" title="посмотреть график цены")=symbol
         td(data-message-code=messageCode)=msg
         td(data-value=parseFloat(currentPrice.slice(1)))=currentPrice
         td(data-value=parseFloat(quoteVolume.slice(1, -4)))=quoteVolume
-        td(class= parseFloat(diviation.slice(0, -1)) > 0 ? "rise" : "fall" data-value=parseFloat(diviation.slice(0, -1)))=diviation
+        td(class= diviationDigit > 0 ? "rise" : "fall" data-value=diviationDigit)=diviation

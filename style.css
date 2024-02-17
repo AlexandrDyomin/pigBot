@@ -56,6 +56,14 @@ caption {
     font-weight: 600;
 }
 
+.intervals {
+    border: 2px solid rgb(255, 149, 0);
+    border-radius: 4px;
+    color: rgb(255, 149, 0);
+    background: white;
+    font-weight: 500;
+}
+
 thead,
 tbody {
     color: rgba(0, 0, 0, 0.7);
