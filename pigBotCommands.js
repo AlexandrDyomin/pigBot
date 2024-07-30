@@ -33,7 +33,9 @@ let commands = {
             filter: command.match(regExpKeyF)?.[1].split(/,\s*/),
             limit: +command.match(regExpKeyL)?.[1] || undefined
         }
-        console.log(props, command, command.match(regExpKeyF)?.[1])
+        // console.log(props, command, command.match(regExpKeyF)?.[1])
+        console.log(1, command.match(regExpKeyP)?.[1])
+
         try {
             let [msg, sub] = addSub(id, props);
             res.sendMessage(id, msg).catch(console.error);
@@ -115,27 +117,50 @@ let commands = {
             throw error;
         }
     
-        function deleteSub(contactId, ids) {
-            if (!ids || !ids.length) return ['Не передано ни одного id подписки для удаления!'];
-        
-            let subscriptions = getContact(contacts, contactId).subscriptions;
-            
+        function deleteSub(contactId, ids = []) {
+            var subscriptions = getContact(contacts, contactId).subscriptions;
             let deletedSubs = [];
-            for (let id of ids) {
-                let i = subscriptions.findIndex((item) => item.id === id);
-                i >= 0 && deletedSubs.push((subscriptions.splice(i, 1))[0]);
+            if (!subscriptions.length) {
+                return ['У Вас нет подписок для  удаления', deletedSubs];
+            }
+
+            if (!ids.length) {
+                deletedSubs = [...subscriptions];
+                subscriptions.length = 0;
+            } else {
+                for (let id of ids) {
+                    let i = subscriptions.findIndex((item) => item.id === id);
+                    i >= 0 && deletedSubs.push((subscriptions.splice(i, 1))[0]);
+                }
             }
         
             // обновим базу
             try {
-                updateBase();    
-                return ids.length > 1 ? 
-                    [`${deletedSubs.length} из ${ids.length} подписок удалены.`, deletedSubs] : 
-                    ['Подписка удалена.', deletedSubs];
+                if (deletedSubs.length) {
+                    updateBase();    
+                    return deletedSubs.length > 1 ? 
+                        [`${deletedSubs.length} из ${ids.length || deletedSubs.length} подписок удалены.`, deletedSubs] : 
+                        ['Подписка удалена.', deletedSubs];
+                }
+                return ['Нет подписки с таким id', deletedSubs];
             } catch (error) {
                 throw error;
             }
         }
+    },
+    '/show_subscription': (req, res) => {
+        let { id } =req.from;
+        let subscriptions = showSubscription(id);
+        if (!subscriptions.length) {
+            var msg = 'У Вас нет подписок';
+        } else {
+            msg = JSON.stringify(subscriptions, null, 4);
+        }
+
+        
+        res.sendMessage(id, msg, { 
+            parse_mode: 'HTML'
+        }).catch(console.error); 
     },
     '/help': (req, res) => {
         var { id } = req.from;
@@ -152,7 +177,11 @@ let commands = {
             '   <i>2 - Предыдущая свеча закрылась ниже верхней линии Боллинджера</i> \n' +
             '   <i>3 - Свеча рядом с нижней линией Боллиндженра</i> \n' +
             '   <i>4 - Свеча рядом с верхней линией Боллиндженра</i> \n' +
-            '   <i>5 - Свеча рядом со средней линией Боллиндженра</i>';
+            '   <i>5 - Свеча рядом со средней линией Боллиндженра</i> \n\n' +
+            'Подписаться на рассылку сообщений можно отправив команду <i>subscribe</i>. \n\n' +
+            'Команда <i>subscribe</i> имеет два обязательных параметра: -i, -p и два не обязательных: -f и -l.\n\n' +
+            'Интервал графика -i может быть одним из следующих значений - 1h, 1d, 1w, 1M. \n' +
+            'Переодичность получение сообщений -p можно задать в секундах(s), минутах(m), часах(h) и днях(d).';
 
         res.sendMessage(id, msg, { 
             parse_mode: 'HTML'
@@ -271,6 +300,10 @@ function activateSub(sub, req, res) {
         }
     }, delay);
     intervals.set(sub, intervalId);
+}
+
+function showSubscription(contactId) {
+    return getContact(contacts, contactId).subscriptions;
 }
 
 module.exports =  { commands, activateSub, convertTimeToMs, sendSummary, updateBase };

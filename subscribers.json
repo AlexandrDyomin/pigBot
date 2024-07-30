@@ -4,55 +4,23 @@
         "subscriptions": [
             {
                 "id": "1",
-                "interval": "1d",
+                "interval": "1h",
                 "filter": [
                     "1"
                 ],
-                "periodicity": "1d",
+                "periodicity": "1h",
                 "limit": 100,
-                "lastMsgTime": "2024-02-16T02:21:35.753Z"
+                "lastMsgTime": "2024-07-30T00:35:28.130Z"
             },
             {
                 "id": "2",
-                "interval": "1d",
+                "interval": "1h",
                 "filter": [
                     "2"
                 ],
-                "periodicity": "1d",
+                "periodicity": "1h",
                 "limit": 100,
-                "lastMsgTime": "2024-02-16T02:21:35.754Z"
-            },
-            {
-                "id": "3",
-                "interval": "1w",
-                "filter": [
-                    "1"
-                ],
-                "periodicity": "7d",
-                "limit": 100,
-                "lastMsgTime": "2024-02-12T08:39:44.971Z"
-            },
-            {
-                "id": "4",
-                "interval": "1w",
-                "filter": [
-                    "2"
-                ],
-                "periodicity": "7d",
-                "limit": 100,
-                "lastMsgTime": "2024-02-12T08:40:54.661Z"
-            },
-            {
-                "id": "5",
-                "interval": "1M",
-                "filter": [
-                    "1",
-                    "2",
-                    "3"
-                ],
-                "periodicity": "7d",
-                "limit": 100,
-                "lastMsgTime": "2024-02-12T08:41:24.035Z"
+                "lastMsgTime": "2024-07-30T00:36:33.621Z"
             }
         ]
     }

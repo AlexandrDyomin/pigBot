@@ -23,7 +23,7 @@ async function getInfoAboutCryptocurrencyPairs({
 
 async function getMarketInfo(url, isSecondAttempt = false) {
     try {
-        let response = await fetch(url, { signal: AbortSignal.timeout(1500) });
+        let response = await fetch(url, { signal: AbortSignal.timeout(10000) });
         if (!response.ok) throw Error(`Статусный код ответа: ${response.ok}`);
         return await response.json();
     } catch(error) {
@@ -32,7 +32,7 @@ async function getMarketInfo(url, isSecondAttempt = false) {
         }
 
         if (error.name === 'TimeoutError') {
-            console.error('Запрос на получение списка криптовалют отменен. Ожидание ответа сервера более 1500 мс');
+            console.error('Запрос на получение списка криптовалют отменен. Ожидание ответа сервера более 10000 мс');
         } else {
             console.error('Попытка получить список криптовалют закончились неудачей');
         }

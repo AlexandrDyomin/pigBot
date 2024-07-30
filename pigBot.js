@@ -54,6 +54,14 @@ var menu = [
         description: 'Узнать положение свечи с интервалом 1M'
     },
     {
+        command: 'show_subscription',
+        description: 'Показать подписки'
+    },
+    {
+        command: 'unsubscribe',
+        description: 'Удалить все подписки'
+    },
+    {
         command: 'help',
         description: 'Вызов справки'
     }
