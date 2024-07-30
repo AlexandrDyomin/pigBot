@@ -8,8 +8,12 @@ const {
     regExpKeyP, 
     regExpKeyL, 
     regExpKeyF, 
+    regExpKeyT,
     regExpIds 
 } = require('./variables.js');
+const getInfoAboutCryptocurrencyPairs = require('./api/getInfoAboutCryptocurrencyPairs.js');
+const { URL_MARKET_INFO } = require('./api/urls.js');
+
 
 let commands = {
     '/start': (req, res) => {
@@ -20,29 +24,60 @@ let commands = {
             parse_mode: 'HTML'
         }).catch(console.error); 
     },
-    '/analize_hc': sendSummary.bind(null, { interval: '1h' }),
-    '/analize_dc': sendSummary.bind(null, { interval: '1d' }),
-    '/analize_wc': sendSummary.bind(null, { interval: '1w' }),
-    '/analize_mc': sendSummary.bind(null, { interval: '1M' }),
+    '/analize_hc': async (req, res) => {
+        let pairs = await getInfoAboutCryptocurrencyPairs({
+            url: URL_MARKET_INFO, 
+            quotedCoin: 'USDT', 
+            order: 'quoteVolume', 
+            limit: 100
+        });
+        sendSummary({ interval: '1h', pairs }, req, res);
+    },
+    '/analize_dc': async (req, res) => {
+        let pairs = await getInfoAboutCryptocurrencyPairs({
+            url: URL_MARKET_INFO, 
+            quotedCoin: 'USDT', 
+            order: 'quoteVolume', 
+            limit: 100
+        });
+        sendSummary({ interval: '1d', pairs }, req, res);
+    },
+    '/analize_wc': async (req, res) => {
+        let pairs = await getInfoAboutCryptocurrencyPairs({
+            url: URL_MARKET_INFO, 
+            quotedCoin: 'USDT', 
+            order: 'quoteVolume', 
+            limit: 100
+        });
+        sendSummary({ interval: '1w', pairs }, req, res);
+    },
+    '/analize_mc': async (req, res) => {
+        let pairs = await getInfoAboutCryptocurrencyPairs({
+            url: URL_MARKET_INFO, 
+            quotedCoin: 'USDT', 
+            order: 'quoteVolume', 
+            limit: 100
+        });
+        sendSummary({ interval: '1M', pairs }, req, res);
+    },
     '/subscribe': (req, res) => {
         var { id } = req.from;
         var command = req.text;
         var props = {
             periodicity: command.match(regExpKeyP)?.[1],
             interval: command.match(regExpKeyI)?.[1],
-            filter: command.match(regExpKeyF)?.[1].split(/,\s*/),
-            limit: +command.match(regExpKeyL)?.[1] || undefined
+            filter: command.match(regExpKeyF)?.[1].split(/,?\s+/),
+            limit: +command.match(regExpKeyL)?.[1] || undefined,
+            tickers: command.match(regExpKeyT)?.[1].toUpperCase().split(/,?\s+/) || []
         }
-        // console.log(props, command, command.match(regExpKeyF)?.[1])
-        console.log(1, command.match(regExpKeyP)?.[1])
 
         try {
             let [msg, sub] = addSub(id, props);
             res.sendMessage(id, msg).catch(console.error);
             if (sub) {
                 activateSub(sub, req, res);
-                let { interval, filter, limit } = sub;
-                sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+                let { interval, filter, limit, tickers } = sub;
+                sendSummary({ interval, filter, limit, pairs: tickers }, req, res).catch(console.error);
                 sub.lastMsgTime = new Date();
                 updateBase();
             }
@@ -54,7 +89,8 @@ let commands = {
             interval, 
             periodicity,
             filter = ['1', '2', '3', '4', '5'],
-            limit = 100
+            limit = 100,
+            tickers
         }) {
             if (!interval || !periodicity) return ['Недостаточно данных для подписки!'];
             
@@ -70,7 +106,8 @@ let commands = {
                         subscription.interval === interval && 
                         subscription.periodicity === periodicity &&
                         subscription.limit === limit &&
-                        compareArray(subscription.filter, filter)
+                        compareArray(subscription.filter, filter) &&
+                        subscription.tickers === tickers
                 ));
         
                 // обновление БД
@@ -82,6 +119,7 @@ let commands = {
                         filter ,
                         periodicity,
                         limit,
+                        tickers
                     };
                     contact.subscriptions.push(subscription);
                     updateBase();
@@ -104,7 +142,7 @@ let commands = {
     '/unsubscribe': (req, res) => {
         var { id } = req.from;
         var command = req.text;
-        var props = command.match(regExpIds)?.[1].split(/,\s*/);
+        var props = command.match(regExpIds)?.[1].split(/,?\s+/);
     
         try {
             let [msg, deletedSubs] = deleteSub(id, props);
@@ -194,7 +232,7 @@ async function sendSummary(props, req, res) {
     var command = req.text;
     var mixin = { ...props };
     mixin.limit = mixin.limit || +command.match(regExpKeyL)?.[1] || undefined;
-    mixin.filter = mixin.filter || command.match(regExpKeyF)?.[1].split(/,\s*/);
+    mixin.filter = mixin.filter || command.match(regExpKeyF)?.[1].split(/,?\s+/);
 
     try {
         var messages = await analizeChart(mixin);
@@ -209,7 +247,7 @@ async function sendSummary(props, req, res) {
         console.error(error);
     }
 
-    async function analizeChart({ 
+    async function analizeChart({
         interval,
         limit = 100, 
         filter = ['1', '2', '3', '4', '5'], 
@@ -219,7 +257,8 @@ async function sendSummary(props, req, res) {
             if (!limit || !filter) return ['С командой переданы неверные агрументы!'];
     
             let info = await callBinance({
-                limit,
+                pairs: props.pairs,
+                limit: 23,
                 interval
             });
     
@@ -288,11 +327,30 @@ function updateBase() {
 }
 
 function activateSub(sub, req, res) {
-    let { periodicity, interval, filter, limit } = sub;
+    let { periodicity, interval, filter, limit, tickers } = sub;
     let delay = convertTimeToMs(periodicity);
-    let intervalId = setInterval(() => {
+    let intervalId = setInterval(async () => {
+        let pairs = await getInfoAboutCryptocurrencyPairs({
+            url: URL_MARKET_INFO, 
+            quotedCoin: 'USDT', 
+            order: 'quoteVolume', 
+            limit
+        });
+        
         try {
-            sendSummary({ interval, filter, limit }, req, res).catch(console.error);
+            if (tickers.length) {
+                let t = pairs.reduce((acc, item) => {
+                if (tickers.includes(item.symbol)) {
+                    acc.push(item);
+                    return acc;
+                }
+                return acc;
+            }, []);
+                sendSummary({ interval, filter, limit, pairs: t }, req, res).catch(console.error);
+            } else {
+                sendSummary({ interval, filter, limit, pairs }, req, res).catch(console.error);
+            }
+
             sub.lastMsgTime = new Date();
             updateBase();
         } catch(error) {

@@ -2,8 +2,9 @@ const fs = require('fs');
 const { contacts, intervals } = require('./store.js');
 const { commands, activateSub, convertTimeToMs, sendSummary, updateBase } = require('./pigBotCommands.js');
 const TelegramBot = require('node-telegram-bot-api');
-const { pathToContacts } = require('./variables.js');
-
+const getInfoAboutCryptocurrencyPairs = require('./api/getInfoAboutCryptocurrencyPairs.js');
+const { URL_MARKET_INFO } = require('./api/urls.js');
+const { tracingChannel } = require('diagnostics_channel');
 
 const bot = new TelegramBot(process.env.API_KEY_BOT, {
     polling: {
@@ -22,9 +23,26 @@ contacts.forEach((contact) => {
         if (timeSinceLastMessage >= periodicity) return start();
         setTimeout(() => start(), periodicity - timeSinceLastMessage);
 
-        function start() {
-            let { interval, filter, limit } = subscription;
-            sendSummary({ interval, filter, limit }, { from: { id } }, bot).catch(console.error);
+        async function start() {
+            let { interval, filter, limit, tickers } = subscription;
+            let pairs = await getInfoAboutCryptocurrencyPairs({
+                url: URL_MARKET_INFO, 
+                quotedCoin: 'USDT', 
+                order: 'quoteVolume', 
+                limit
+            });
+            if (tickers.length) {
+                let t = pairs.reduce((acc, item) => {
+                    if (tickers.includes(item.symbol)) {
+                        acc.push(item);
+                        return acc;
+                    }
+                    return acc;
+                }, []);
+                sendSummary({ interval, filter, limit, pairs: t }, { from: { id } }, bot).catch(console.error);
+            } else {
+                sendSummary({ interval, filter, limit, pairs }, { from: { id } }, bot).catch(console.error);
+            }
             subscription.lastMsgTime = new Date();
             try {
                 updateBase();

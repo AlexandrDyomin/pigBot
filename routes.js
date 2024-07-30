@@ -2,6 +2,8 @@ const pug = require('pug');
 const { readFileSync } = require('fs');
 const callBinance = require('./api/callBinance.js');
 const { URL_MARKET_INFO } = require('./api/urls.js');
+const getInfoAboutCryptocurrencyPairs = require('./api/getInfoAboutCryptocurrencyPairs.js');
+
 
 let routes = {
     '/': sendIndexPage,
@@ -42,8 +44,16 @@ async function sendIndexPage(req, res) {
             throw Error('Указан недопустимый интервал. Укажите любой из следующих интервалов: 1d, 1w, 1M');
         }
 
+        let pairs = await getInfoAboutCryptocurrencyPairs({
+            url: URL_MARKET_INFO, 
+            quotedCoin: 'USDT', 
+            order: 'quoteVolume', 
+            limit: 100
+        });
+
         let info = await callBinance({
-            limit: 100,
+            pairs,
+            limit: 23,
             interval
         });
         
