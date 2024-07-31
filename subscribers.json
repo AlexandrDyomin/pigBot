@@ -11,18 +11,37 @@
                 "periodicity": "1h",
                 "limit": 100,
                 "tickers": [],
-                "lastMsgTime": "2024-07-31T03:15:22.317Z"
+                "lastMsgTime": "2024-07-31T12:27:40.744Z"
             },
             {
                 "id": "2",
-                "interval": "1h",
+                "interval": "1d",
                 "filter": [
-                    "2"
+                    "1",
+                    "3"
                 ],
                 "periodicity": "1h",
                 "limit": 100,
                 "tickers": [],
-                "lastMsgTime": "2024-07-31T03:15:20.433Z"
+                "lastMsgTime": "2024-07-31T12:27:40.744Z"
+            },
+            {
+                "id": "3",
+                "interval": "1d",
+                "filter": [
+                    "2",
+                    "4",
+                    "5"
+                ],
+                "periodicity": "1d",
+                "limit": 100,
+                "tickers": [
+                    "NOTUSDT",
+                    "TIAUSDT",
+                    "DOTUSDT",
+                    "STRKUSDT"
+                ],
+                "lastMsgTime": "2024-07-31T03:36:32.401Z"
             }
         ]
     }

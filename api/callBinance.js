@@ -1,5 +1,5 @@
 const getBarsInfo = require('./getBarsInfo.js');
-const { URL_BARS_INFO, URL_MARKET_INFO } = require('./urls.js');
+const { URL_BARS_INFO } = require('./urls.js');
 const getSummary = require('./getSummary.js');
 
 async function callBinance({
