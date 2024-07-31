@@ -107,7 +107,7 @@ let commands = {
                         subscription.periodicity === periodicity &&
                         subscription.limit === limit &&
                         compareArray(subscription.filter, filter) &&
-                        subscription.tickers === tickers
+                        compareArray(subscription.tickers, tickers)
                 ));
         
                 // обновление БД
@@ -255,7 +255,6 @@ async function sendSummary(props, req, res) {
     }) {
         try {
             if (!limit || !filter) return ['С командой переданы неверные агрументы!'];
-    
             let info = await callBinance({
                 pairs: props.pairs,
                 limit: 23,

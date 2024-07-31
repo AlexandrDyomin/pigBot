@@ -11,7 +11,7 @@
                 "periodicity": "1h",
                 "limit": 100,
                 "tickers": [],
-                "lastMsgTime": "2024-07-30T07:40:07.317Z"
+                "lastMsgTime": "2024-07-31T03:15:22.317Z"
             },
             {
                 "id": "2",
@@ -22,46 +22,7 @@
                 "periodicity": "1h",
                 "limit": 100,
                 "tickers": [],
-                "lastMsgTime": "2024-07-30T07:58:52.823Z"
-            },
-            {
-                "id": "3",
-                "interval": "1h",
-                "filter": [
-                    "2",
-                    "4",
-                    "5"
-                ],
-                "periodicity": "1h",
-                "limit": 100,
-                "tickers": [
-                    "JUPUSDT",
-                    "NOTUSDT",
-                    "TIAUSDT",
-                    "DOTUSDT",
-                    "STRKUSDT",
-                    "CRVUSDT"
-                ],
-                "lastMsgTime": "2024-07-30T08:12:12.833Z"
-            },
-            {
-                "id": "4",
-                "interval": "1d",
-                "filter": [
-                    "2",
-                    "4",
-                    "5"
-                ],
-                "periodicity": "1d",
-                "limit": 100,
-                "tickers": [
-                    "NOTUSDT",
-                    "TIAUSDT",
-                    "DOTUSDT",
-                    "STRKUSDT",
-                    "CRVUSDT"
-                ],
-                "lastMsgTime": "2024-07-30T08:34:17.465Z"
+                "lastMsgTime": "2024-07-31T03:15:20.433Z"
             }
         ]
     }

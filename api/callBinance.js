@@ -12,10 +12,11 @@ async function callBinance({
         for (let pair of pairs) {
             let barsInfo =  getBarsInfo({ 
                 url: URL_BARS_INFO, 
-                symbol: pair.symbol, 
+                symbol: (typeof pair) === 'string' ? pair : pair.symbol, 
                 interval, 
-                limit: 23 
+                limit
             });
+
             store.push(getSummary(barsInfo, pair));
         } 
         
